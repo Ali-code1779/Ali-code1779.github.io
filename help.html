@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>❓ Help - 🍽️ Restaurant Qualification Apps</title>
+  <style>
+    :root {
+      --main-color: #1d4ed8;
+      --main-dark: #172554;
+      --text-color: #1e293b;
+      --bg-light: #f8fafc;
+      --bg-dark: #0f172a;
+      --gray: #94a3b8;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: var(--bg-light);
+      color: var(--text-color);
+      font-size: clamp(14px, 1.2vw, 18px);
+      transition: all 0.3s ease;
+    }
+
+    body.dark-mode {
+      background: var(--bg-dark);
+      color: white;
+    }
+
+    header {
+      background: var(--main-color);
+      color: white;
+      padding: 10px 20px;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .controls button {
+      background: white;
+      color: var(--main-color);
+      padding: 6px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .datetime {
+      font-size: 0.85rem;
+      margin-left: 15px;
+    }
+
+    main {
+      max-width: 700px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #e2e8f0;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    body.dark-mode main {
+      background: #1e293b;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .faq {
+      margin-bottom: 20px;
+    }
+
+    .faq h3 {
+      margin: 10px 0 5px;
+      color: var(--main-color);
+    }
+
+    .faq p {
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    footer {
+      text-align: center;
+      padding: 15px;
+      color: var(--gray);
+      font-size: 0.9rem;
+    }
+
+    .rtl {
+      direction: rtl;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="top-bar">
+      <div class="logo" id="logo">🍽️ <span id="appName">Restaurant Qualification Apps</span></div>
+      <div class="controls">
+        <div class="datetime" id="datetime"></div>
+        <button onclick="window.location.href='index.html'" id="homeBtn">🏠 الرئيسية</button>
+        <button disabled style="opacity:0.7; cursor:default;">❓ المساعدة</button>
+        <button onclick="window.location.href='about.html'" id="aboutBtn">ℹ️ من نحن</button>
+        <button id="langBtn">العربية</button>
+        <button id="themeBtn">🌙</button>
+        <button onclick="window.location.href='login.html'">🔐 تسجيل الدخول</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <h2 id="helpTitle">❓ Help & Support</h2>
+    <div class="faq">
+      <h3 id="q1">How do I log in?</h3>
+      <p id="a1">Use your username and password provided by the system administrator. If you forgot your password, contact support.</p>
+    </div>
+    <div class="faq">
+      <h3 id="q2">من لا يستطيع تسجيل الدخول؟</h3>
+      <p id="a2">يرجى التواصل مع الدعم الفني أو المسؤول للحصول على بيانات الدخول الخاصة بك.</p>
+    </div>
+    <div class="faq">
+      <h3 id="q3">How do I change the language?</h3>
+      <p id="a3">Click the "العربية" or "English" button at the top right to switch languages.</p>
+    </div>
+  </main>
+
+  <footer>
+    &copy; 2025 🍽️ <span id="appNameFooter">Restaurant Qualification Apps</span>. All rights reserved.
+  </footer>
+
+  <script>
+    const html = document.documentElement;
+    let currentLang = localStorage.getItem("lang") || "en";
+
+    document.getElementById("langBtn").addEventListener("click", () => {
+      currentLang = currentLang === "en" ? "ar" : "en";
+      applyLanguage(currentLang);
+    });
+
+    document.getElementById("themeBtn").addEventListener("click", () => {
+      document.body.classList.toggle("dark-mode");
+      localStorage.setItem("theme", document.body.classList.contains("dark-mode") ? "dark" : "light");
+    });
+
+    if (localStorage.getItem("theme") === "dark") {
+      document.body.classList.add("dark-mode");
+    }
+
+    const datetime = document.getElementById("datetime");
+    function updateTime() {
+      const now = new Date();
+      const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+      datetime.innerText = now.toLocaleString(currentLang === 'ar' ? 'ar-EG' : 'en-US', options);
+    }
+    updateTime();
+    setInterval(updateTime, 60000);
+
+    function applyLanguage(lang) {
+      const text = {
+        en: {
+          helpTitle: "❓ Help & Support",
+          q1: "How do I log in?",
+          a1: "Use your username and password provided by the system administrator. If you forgot your password, contact support.",
+          q2: "Who can’t log in?",
+          a2: "Please contact support or the administrator to receive your login credentials.",
+          q3: "How do I change the language?",
+          a3: "Click the \"العربية\" or \"English\" button at the top right to switch languages.",
+          langBtn: "العربية",
+          homeBtn: "🏠 Home",
+          aboutBtn: "ℹ️ About"
+        },
+        ar: {
+          helpTitle: "❓ المساعدة والدعم",
+          q1: "كيف يمكنني تسجيل الدخول؟",
+          a1: "استخدم اسم المستخدم وكلمة المرور التي زودك بها المسؤول. إذا نسيت كلمة المرور، اتصل بالدعم.",
+          q2: "من لا يستطيع تسجيل الدخول؟",
+          a2: "يرجى التواصل مع الدعم الفني أو المسؤول للحصول على بيانات الدخول الخاصة بك.",
+          q3: "كيف أغير اللغة؟",
+          a3: "اضغط على زر \"English\" أو \"العربية\" في الأعلى للتبديل بين اللغتين.",
+          langBtn: "English",
+          homeBtn: "🏠 الرئيسية",
+          aboutBtn: "ℹ️ من نحن"
+        }
+      };
+
+      const t = text[lang];
+      document.getElementById("helpTitle").innerText = t.helpTitle;
+      document.getElementById("q1").innerText = t.q1;
+      document.getElementById("a1").innerText = t.a1;
+      document.getElementById("q2").innerText = t.q2;
+      document.getElementById("a2").innerText = t.a2;
+      document.getElementById("q3").innerText = t.q3;
+      document.getElementById("a3").innerText = t.a3;
+      document.getElementById("langBtn").innerText = t.langBtn;
+      document.getElementById("homeBtn").innerText = t.homeBtn;
+      document.getElementById("aboutBtn").innerText = t.aboutBtn;
+
+      if (lang === 'ar') {
+        document.body.classList.add("rtl");
+      } else {
+        document.body.classList.remove("rtl");
+      }
+    }
+
+    applyLanguage(currentLang);
+  </script>
+</body>
+</html>

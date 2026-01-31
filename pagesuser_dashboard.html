@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>المستخدمين - لوحة تحكم الأدمن</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f9fafb; margin: 0; padding: 20px; direction: rtl; }
+    h1 { color: #007BFF; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin-top: 15px;
+    }
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+    }
+    th {
+      background-color: #007BFF;
+      color: white;
+    }
+    tr:hover {
+      background-color: #f1f5f9;
+    }
+    button {
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 0 3px;
+    }
+    .edit-btn { background-color: #ffc107; color: #333; }
+    .delete-btn { background-color: #dc3545; color: white; }
+    .add-btn {
+      margin-bottom: 15px;
+      background-color: #28a745;
+      color: white;
+      padding: 8px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #loading {
+      color: #555;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="pageTitle">المستخدمين</h1>
+  <button class="add-btn" onclick="showAddUserForm()" id="addUserBtn">➕ إضافة مستخدم جديد</button>
+
+  <div id="loading">...جاري تحميل البيانات</div>
+
+  <table id="usersTable" style="display:none;">
+    <thead>
+      <tr>
+        <th id="thId">الرقم</th>
+        <th id="thName">الاسم</th>
+        <th id="thEmail">البريد الإلكتروني</th>
+        <th id="thUsername">اسم المستخدم</th>
+        <th id="thRole">الدور</th>
+        <th id="thActive">الحالة</th>
+        <th id="thDate">تاريخ التسجيل</th>
+        <th id="thActions">الإجراءات</th>
+      </tr>
+    </thead>
+    <tbody id="usersTableBody"></tbody>
+  </table>
+
+  <!-- نموذج إضافة مستخدم -->
+  <div id="addUserForm" style="display:none; margin-top:20px; background:#fff; padding:15px; border-radius:8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); max-width:400px;">
+    <h3 id="formTitle">إضافة مستخدم جديد</h3>
+    <label id="labelName">الاسم: <br><input type="text" id="name" /></label><br><br>
+    <label id="labelEmail">البريد الإلكتروني: <br><input type="email" id="email" /></label><br><br>
+    <label id="labelUsername">اسم المستخدم: <br><input type="text" id="username" /></label><br><br>
+    <label id="labelPassword">كلمة المرور: <br><input type="password" id="password" /></label><br><br>
+    <label id="labelRole">الدور: <br>
+      <select id="role">
+        <option value="user" id="roleUser">مستخدم</option>
+        <option value="admin" id="roleAdmin">أدمن</option>
+      </select>
+    </label><br><br>
+    <button onclick="registerUser()" id="btnRegister">تسجيل</button>
+    <button onclick="hideAddUserForm()" id="btnCancel">إلغاء</button>
+    <div id="addUserMessage" style="margin-top:10px;color:red;"></div>
+  </div>
+
+<script>
+  const API_URL = 'https://script.google.com/macros/s/AKfycbxt6JPEYTUsfOpt8ChAjZooHzZesQSMXa7kppn92TkutEOfxXFIRkqUxmt6k7EkLc3eVA/exec';
+
+  // النصوص بالعربية والإنجليزية
+  const labels = {
+    ar: {
+      pageTitle: "المستخدمين",
+      addUserBtn: "➕ إضافة مستخدم جديد",
+      loading: "...جاري تحميل البيانات",
+      thId: "الرقم",
+      thName: "الاسم",
+      thEmail: "البريد الإلكتروني",
+      thUsername: "اسم المستخدم",
+      thRole: "الدور",
+      thActive: "الحالة",
+      thDate: "تاريخ التسجيل",
+      thActions: "الإجراءات",
+      formTitle: "إضافة مستخدم جديد",
+      labelName: "الاسم:",
+      labelEmail: "البريد الإلكتروني:",
+      labelUsername: "اسم المستخدم:",
+      labelPassword: "كلمة المرور:",
+      labelRole: "الدور:",
+      roleUser: "مستخدم",
+      roleAdmin: "أدمن",
+      btnRegister: "تسجيل",
+      btnCancel: "إلغاء",
+      alertUpdateRole: "تغيير الدور للمستخدم",
+      alertInvalidRole: "يرجى إدخال admin أو user فقط.",
+      alertUpdateSuccess: "تم تحديث الدور بنجاح",
+      alertFetchError: "خطأ في جلب المستخدمين: ",
+      alertConnectionFail: "فشل الاتصال بالخادم",
+      alertRegisterSuccess: "تم تسجيل المستخدم بنجاح",
+      alertRegisterFail: "خطأ في التسجيل",
+      alertDeleteDisabled: "ميزة الحذف غير مفعلة في API، يمكن تطويرها لاحقًا."
+    },
+    en: {
+      pageTitle: "Users",
+      addUserBtn: "➕ Add New User",
+      loading: "...Loading data",
+      thId: "ID",
+      thName: "Name",
+      thEmail: "Email",
+      thUsername: "Username",
+      thRole: "Role",
+      thActive: "Status",
+      thDate: "Registered Date",
+      thActions: "Actions",
+      formTitle: "Add New User",
+      labelName: "Name:",
+      labelEmail: "Email:",
+      labelUsername: "Username:",
+      labelPassword: "Password:",
+      labelRole: "Role:",
+      roleUser: "User",
+      roleAdmin: "Admin",
+      btnRegister: "Register",
+      btnCancel: "Cancel",
+      alertUpdateRole: "Change role for user",
+      alertInvalidRole: "Please enter only admin or user.",
+      alertUpdateSuccess: "Role updated successfully",
+      alertFetchError: "Error fetching users: ",
+      alertConnectionFail: "Failed to connect to server",
+      alertRegisterSuccess: "User registered successfully",
+      alertRegisterFail: "Registration error",
+      alertDeleteDisabled: "Delete feature is not enabled in the API, can be developed later."
+    }
+  };
+
+  // استقبال اللغة من الصفحة الأم
+  window.addEventListener("message", event => {
+    if (event.data && event.data.lang) {
+      setLanguage(event.data.lang);
+    }
+  });
+
+  let currentLang = 'ar';
+
+  function setLanguage(lang) {
+    if (!labels[lang]) lang = 'ar'; // fallback
+    currentLang = lang;
+
+    document.documentElement.lang = lang;
+    document.body.dir = lang === 'ar' ? 'rtl' : 'ltr';
+
+    document.getElementById('pageTitle').innerText = labels[lang].pageTitle;
+    document.getElementById('addUserBtn').innerText = labels[lang].addUserBtn;
+    document.getElementById('loading').innerText = labels[lang].loading;
+    document.getElementById('thId').innerText = labels[lang].thId;
+    document.getElementById('thName').innerText = labels[lang].thName;
+    document.getElementById('thEmail').innerText = labels[lang].thEmail;
+    document.getElementById('thUsername').innerText = labels[lang].thUsername;
+    document.getElementById('thRole').innerText = labels[lang].thRole;
+    document.getElementById('thActive').innerText = labels[lang].thActive;
+    document.getElementById('thDate').innerText = labels[lang].thDate;
+    document.getElementById('thActions').innerText = labels[lang].thActions;
+
+    document.getElementById('formTitle').innerText = labels[lang].formTitle;
+    document.getElementById('labelName').childNodes[0].nodeValue = labels[lang].labelName + " ";
+    document.getElementById('labelEmail').childNodes[0].nodeValue = labels[lang].labelEmail + " ";
+    document.getElementById('labelUsername').childNodes[0].nodeValue = labels[lang].labelUsername + " ";
+    document.getElementById('labelPassword').childNodes[0].nodeValue = labels[lang].labelPassword + " ";
+    document.getElementById('labelRole').childNodes[0].nodeValue = labels[lang].labelRole + " ";
+    document.getElementById('roleUser').innerText = labels[lang].roleUser;
+    document.getElementById('roleAdmin').innerText = labels[lang].roleAdmin;
+    document.getElementById('btnRegister').innerText = labels[lang].btnRegister;
+    document.getElementById('btnCancel').innerText = labels[lang].btnCancel;
+  }
+
+  async function fetchUsers() {
+    try {
+      document.getElementById('loading').style.display = 'block';
+      const res = await fetch(`${API_URL}?method=get`);
+      const data = await res.json();
+      document.getElementById('loading').style.display = 'none';
+
+      if (data.success) {
+        populateTable(data.users);
+      } else {
+        alert(labels[currentLang].alertFetchError + data.message);
+      }
+    } catch (error) {
+      document.getElementById('loading').style.display = 'none';
+      alert(labels[currentLang].alertConnectionFail);
+      console.error(error);
+    }
+  }
+
+  function populateTable(users) {
+    const tbody = document.getElementById('usersTableBody');
+    tbody.innerHTML = '';
+    users.forEach((user) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${user.id}</td>
+        <td>${user.name}</td>
+        <td>${user.email}</td>
+        <td>${user.username}</td>
+        <td>${user.role}</td>
+        <td>${user.active}</td>
+        <td>${user.dateRegistered}</td>
+        <td>
+          <button class="edit-btn" onclick="editUserRole('${user.username}', '${user.role}')">${currentLang === 'ar' ? 'تغيير الدور' : 'Change Role'}</button>
+          <button class="delete-btn" onclick="deleteUser('${user.username}')">${currentLang === 'ar' ? 'حذف' : 'Delete'}</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+    document.getElementById('usersTable').style.display = 'table';
+  }
+
+  async function editUserRole(username, currentRole) {
+    const newRole = prompt(`${labels[currentLang].alertUpdateRole} ${username} (admin أو user)`, currentRole);
+    if (newRole !== 'admin' && newRole !== 'user') {
+      alert(labels[currentLang].alertInvalidRole);
+      return;
+    }
+    try {
+      const res = await fetch(`${API_URL}?method=updateRole&username=${encodeURIComponent(username)}&role=${encodeURIComponent(newRole)}`);
+      const data = await res.json();
+      if (data.success) {
+        alert(labels[currentLang].alertUpdateSuccess);
+        fetchUsers();
+      } else {
+        alert('خطأ: ' + data.message);
+      }
+    } catch (error) {
+      alert(labels[currentLang].alertConnectionFail);
+      console.error(error);
+    }
+  }
+
+  function deleteUser(username) {
+    alert(labels[currentLang].alertDeleteDisabled);
+  }
+
+  function showAddUserForm() {
+    document.getElementById('addUserForm').style.display = 'block';
+  }
+  function hideAddUserForm() {
+    document.getElementById('addUserForm').style.display = 'none';
+    clearAddUserForm();
+  }
+  function clearAddUserForm() {
+    document.getElementById('name').value = '';
+    document.getElementById('email').value = '';
+    document.getElementById('username').value = '';
+    document.getElementById('password').value = '';
+    document.getElementById('role').value = 'user';
+    document.getElementById('addUserMessage').innerText = '';
+  }
+
+  async function registerUser() {
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const role = document.getElementById('role').value;
+
+    if (!name || !email || !username || !password) {
+      document.getElementById('addUserMessage').innerText = currentLang === 'ar' ? 'يرجى ملء جميع الحقول' : 'Please fill all fields';
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}?method=register&name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&role=${encodeURIComponent(role)}`);
+      const data = await res.json();
+      if (data.success) {
+        alert(labels[currentLang].alertRegisterSuccess);
+        hideAddUserForm();
+        fetchUsers();
+      } else {
+        document.getElementById('addUserMessage').innerText = data.message || labels[currentLang].alertRegisterFail;
+      }
+    } catch (error) {
+      document.getElementById('addUserMessage').innerText = labels[currentLang].alertConnectionFail;
+      console.error(error);
+    }
+  }
+
+  // تحميل المستخدمين عند فتح الصفحة
+  fetchUsers();
+</script>
+</body>
+</html>

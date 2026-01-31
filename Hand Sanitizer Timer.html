@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hand Sanitizer Timer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 350px;
+            text-align: center;
+            border: 2px solid #ddd;
+            position: relative;
+            transition: 0.3s;
+        }
+
+        .container:hover {
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        h2 {
+            color: #007BFF;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+
+        .timer {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 15px 0;
+            padding: 10px;
+            color: white;
+            border-radius: 10px;
+            background-color: #007BFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .message {
+            font-size: 1.1em;
+            margin-top: 10px;
+            padding: 12px;
+            background-color: #f9c74f;
+            border-radius: 10px;
+            color: #333;
+            display: none;
+            font-weight: bold;
+        }
+
+        button {
+            background: #007BFF;
+            color: white;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            transition: 0.3s;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-size: 1em;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        input[type="file"] {
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        .timers-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🧴 Hand Sanitizer Timer</h1>
+
+    <div class="timers-container">
+        <!-- Counter Timer -->
+        <div class="container">
+            <h2>🕒 Counter Timer</h2>
+            <select id="counterDuration">
+                <option value="1">1 Minute</option>
+                <option value="5">5 Minutes</option>
+                <option value="10">10 Minutes</option>
+                <option value="15">15 Minutes</option>
+                <option value="30">30 Minutes</option>
+            </select>
+            <button onclick="startTimer('counter')">Start Timer</button>
+            <div id="counterTimer" class="timer">00:00</div>
+            <div id="counterMessage" class="message"></div>
+            <input type="file" id="counterSoundFile" accept="audio/*" onchange="loadSound('counter')" />
+        </div>
+
+        <!-- Kitchen Timer -->
+        <div class="container">
+            <h2>🍽️ Kitchen Timer</h2>
+            <select id="kitchenDuration">
+                <option value="1">1 Minute</option>
+                <option value="5">5 Minutes</option>
+                <option value="10">10 Minutes</option>
+                <option value="15">15 Minutes</option>
+                <option value="30">30 Minutes</option>
+            </select>
+            <button onclick="startTimer('kitchen')">Start Timer</button>
+            <div id="kitchenTimer" class="timer">00:00</div>
+            <div id="kitchenMessage" class="message"></div>
+            <input type="file" id="kitchenSoundFile" accept="audio/*" onchange="loadSound('kitchen')" />
+        </div>
+    </div>
+
+    <script>
+        let timers = { counter: null, kitchen: null };
+        let sounds = { counter: new Audio("https://www.soundjay.com/button/beep-07.wav"), kitchen: new Audio("https://www.soundjay.com/button/beep-07.wav") };
+
+        function startTimer(type) {
+            let duration = parseInt(document.getElementById(`${type}Duration`).value) * 60;
+            let timerDisplay = document.getElementById(`${type}Timer`);
+            let message = document.getElementById(`${type}Message`);
+
+            if (timers[type]) clearInterval(timers[type]);
+
+            let endTime = Date.now() + duration * 1000;
+            localStorage.setItem(`${type}EndTime`, endTime);
+
+            timers[type] = setInterval(() => {
+                let remaining = Math.max(0, Math.floor((endTime - Date.now()) / 1000));
+                let minutes = Math.floor(remaining / 60);
+                let seconds = remaining % 60;
+                timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+                if (remaining === 0) {
+                    clearInterval(timers[type]);
+                    localStorage.removeItem(`${type}EndTime`);
+                    timerDisplay.textContent = "00:00";
+                    message.textContent = "⏳ Time to sanitize hands and change gloves!";
+                    message.style.display = "block";
+
+                    if (sounds[type]) {
+                        sounds[type].play();
+                    } else {
+                        alert("⏳ Time to sanitize hands and change gloves!");
+                    }
+
+                    setTimeout(() => confirmAction(type), 500);
+                }
+            }, 1000);
+        }
+
+        function confirmAction(type) {
+            let response = confirm("Have gloves been changed and hands sanitized?");
+            if (response) {
+                document.getElementById(`${type}Message`).style.display = "none";
+            }
+        }
+
+        function loadSound(type) {
+            let file = document.getElementById(`${type}SoundFile`).files[0];
+            if (file) {
+                sounds[type] = new Audio(URL.createObjectURL(file));
+            }
+        }
+
+        function restoreTimers() {
+            ["counter", "kitchen"].forEach(type => {
+                let endTime = localStorage.getItem(`${type}EndTime`);
+                if (endTime) {
+                    let remaining = Math.max(0, Math.floor((endTime - Date.now()) / 1000));
+                    if (remaining > 0) {
+                        startTimer(type);
+                    }
+                }
+            });
+        }
+
+        window.onload = restoreTimers;
+    </script>
+
+</body>
+</html>

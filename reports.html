@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>تقارير الأحداث</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f9fafb; margin: 0; padding: 20px; }
+    h1 { color: #007BFF; margin-bottom: 18px; }
+    #searchBar {
+      margin: 15px 0 10px 0; padding: 10px; width: 260px; border-radius: 5px;
+      border: 1px solid #ccc; font-size: 1rem;
+    }
+    #messageBox {
+      padding: 10px; margin-top: 10px; border-radius: 5px; display: none; font-weight: bold;
+      font-size: 1rem; text-align: center;
+    }
+    .success { background-color: #d4edda; color: #155724; }
+    .error { background-color: #f8d7da; color: #721c24; }
+    table {
+      width: 100%; border-collapse: collapse; background: white; border-radius: 8px;
+      overflow: hidden; box-shadow: 0 0 10px rgba(0,0,0,0.08); margin-top: 15px;
+    }
+    th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; font-size: 1rem; }
+    th { background-color: #007BFF; color: white; }
+    tr:hover { background-color: #f1f5f9; }
+    @media (max-width: 700px) {
+      table, thead, tbody, th, td, tr { font-size: 0.93em; }
+      #searchBar { width: 98vw; }
+    }
+  </style>
+</head>
+<body>
+  <h1>تقارير الأحداث (Logs)</h1>
+  <input type="text" id="searchBar" placeholder="🔍 ابحث في التقارير..." oninput="filterLogs()" />
+  <div id="messageBox"></div>
+  <table id="logsTable" style="display:none;">
+    <thead>
+      <tr>
+        <th>التاريخ</th>
+        <th>البريد</th>
+        <th>الإجراء</th>
+        <th>التفاصيل</th>
+      </tr>
+    </thead>
+    <tbody id="logsTableBody"></tbody>
+  </table>
+
+<script>
+// ضع هنا رابط Web App الخاص بك:
+const API_URL = 'https://script.google.com/macros/s/AKfycby2r_UOEoYhn70273JV9RuWq98acn5AV4lU49P1ad7eFPb-7vdhWS-7B0EB3SsTpjXW-g/exec';
+
+let logsData = [];
+
+function showMessage(message, isSuccess = true) {
+  const box = document.getElementById('messageBox');
+  box.className = isSuccess ? 'success' : 'error';
+  box.innerText = message;
+  box.style.display = 'block';
+  setTimeout(() => { box.style.display = 'none'; }, 3500);
+}
+
+async function fetchLogs() {
+  try {
+    // جلب كل التقارير (يمكنك زيادة pageSize حسب الحاجة)
+    const res = await fetch(`${API_URL}?resource=logs&method=get&pageSize=1000&sortBy=timestamp&sortOrder=desc`);
+    const data = await res.json();
+    if (data.success && data.data) {
+      logsData = data.data;
+      populateLogsTable(logsData);
+    } else {
+      showMessage('خطأ في جلب التقارير: ' + (data.error || data.message), false);
+    }
+  } catch {
+    showMessage('فشل الاتصال بالخادم', false);
+  }
+}
+
+function populateLogsTable(logs) {
+  const tbody = document.getElementById('logsTableBody');
+  tbody.innerHTML = '';
+  logs.forEach(log => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${log.timestamp ? log.timestamp.split('T')[0] : '-'}</td>
+        <td>${log.email || '-'}</td>
+        <td>${log.action || '-'}</td>
+        <td>${log.details || '-'}</td>
+      </tr>
+    `;
+  });
+  document.getElementById('logsTable').style.display = logs.length ? 'table' : 'none';
+}
+
+function filterLogs() {
+  const value = document.getElementById('searchBar').value.trim().toLowerCase();
+  if (!value) {
+    populateLogsTable(logsData);
+    return;
+  }
+  const filtered = logsData.filter(log =>
+    (log.timestamp && log.timestamp.toLowerCase().includes(value)) ||
+    (log.email && log.email.toLowerCase().includes(value)) ||
+    (log.action && log.action.toLowerCase().includes(value)) ||
+    (log.details && log.details.toLowerCase().includes(value))
+  );
+  populateLogsTable(filtered);
+}
+
+window.onload = fetchLogs;
+</script>
+</body>
+</html>

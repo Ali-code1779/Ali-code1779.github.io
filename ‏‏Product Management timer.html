@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-i18n="title">🕒 عداد المنتجات</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" async defer></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      direction: rtl;
+      background-color: #f0f2f5;
+      padding: 20px;
+    }
+	#timers-table-container {
+  overflow: hidden; /* نمنع التمرير على كامل الكونتينر */
+}
+
+#timers-table-container table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#timers-table-container thead th {
+  background-color: #007bff;
+  color: white;
+  border: 1px solid #ccc;
+}
+
+#timerBody {
+  display: block;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+#timerBody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+#timers-table-container thead, 
+#timers-table-container tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+#timers-table-container tbody td {
+  border: 1px solid #ccc;
+}
+#timers-table-container {
+  overflow: hidden;
+  max-width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin: 0 auto;
+}
+
+#timers-table-container table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+#timers-table-container thead th {
+  background-color: #007bff;
+  color: white;
+  padding: 12px 8px;
+  text-align: center;
+  font-size: 16px;
+  border-bottom: 2px solid #0056b3;
+}
+
+#timerBody {
+  display: block;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+#timerBody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+#timers-table-container tbody td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #e0e0e0;
+  text-align: center;
+  background-color: #f9f9f9;
+}
+
+/* آخر صف بدون حدود سفلية */
+#timers-table-container tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* اجعل الجدول متجاوبًا */
+@media (max-width: 600px) {
+  #timers-table-container thead th,
+  #timers-table-container tbody td {
+    font-size: 14px;
+    padding: 10px 6px;
+  }
+
+  #timerBody {
+    max-height: 200px;
+  }
+}
+#timers-table-container tbody tr {
+  transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+  border-radius: 6px; /* حدود ناعمة إضافية */
+}
+
+#timers-table-container tbody tr:hover {
+  background-color: #f0f8ff; /* لون خلفية hover مخصص */
+  cursor: pointer;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08); /* ظل خفيف */
+  transform: translateY(-2px); /* ارتفاع خفيف */
+}
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background-color: #fff;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 25px;
+    }
+    .section-container {
+      margin-bottom: 30px;
+      border: 1px solid #ccc;
+      padding: 20px;
+      border-radius: 10px;
+      background-color: #f9f9f9;
+    }
+    .section-title {
+      font-size: 18px;
+      margin-bottom: 10px;
+      color: #555;
+      font-weight: bold;
+    }
+    form, .settings {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    input, select, button {
+      padding: 10px;
+      font-size: 16px;
+    }
+    input, select {
+      flex: 1 1 180px;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #ccc;
+      text-align: center;
+    }
+    .digital-timer {
+      font-weight: bold;
+      font-family: monospace;
+    }
+    .expired {
+      color: red;
+    }
+    .btn-action, .btn-delete, .btn-toggle {
+      margin-top: 5px;
+      padding: 5px 10px;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-action { background-color: #28a745; }
+    .btn-delete { background-color: #dc3545; }
+    .btn-action:hover { background-color: #218838; }
+    .btn-delete:hover { background-color: #c82333; }
+    .btn-toggle { background-color: #6c757d; }
+    .btn-toggle:hover { background-color: #5a6268; }
+    .lang-toggle {
+      float: left;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <button class="lang-toggle" onclick="toggleLanguage()">English</button>
+  <h1 data-i18n="header">🛒 إدارة المنتجات</h1>
+
+  <div style="margin-bottom: 15px; text-align:center">
+    <!-- ✅ زر إجراءات المنتجات بعد الدمج -->
+
+	<div id="googleSignInDiv" style="text-align:center; margin:20px;"></div>
+    <button class="btn-toggle" onclick="showProductActions()" data-i18n="productActionsTitle">🛠️ إعداد المنتجات</button>
+    <button class="btn-toggle" onclick="showSection('timer-form-container')" data-i18n="add">⏱️ إضافة مؤقت</button>
+	<button class="btn-toggle" onclick="togglePrintOptions()" data-i18n="printOptions">🖨️ خيارات الطباعة</button>
+<button class="btn-toggle" onclick="showProducts()" data-i18n="showProducts">👁️ عرض المنتجات</button>
+    <button class="btn-toggle" onclick="showSection('timers-table-container')" data-i18n="timersTable">📋 عرض المؤقتات</button>
+<div style="text-align: center; margin-top: 20px;">
+  
+</div>
+
+<!-- ✅ كونتينر خيارات الطباعة -->
+<div id="print-options-container" style="display:none; max-width: 600px; margin: 20px auto; background:#fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+  <h3 style="text-align: center; margin-bottom: 15px;" data-i18n="printOptionsTitle">📄 خيارات الطباعة</h3>
+<form id="print-options-form">
+  <label><input type="checkbox" name="printOption" value="all"> <span data-i18n="printAll">🗂️ طباعة جدول المؤقتات كامل</span></label><br><br>
+  <label><input type="checkbox" name="printOption" value="active"> <span data-i18n="printActive">🔄 طباعة المؤقتات النشطة</span></label><br><br>
+  <label><input type="checkbox" name="printOption" value="sticker"> <span data-i18n="printSticker">🏷️ طباعة ملصق لمنتج واحد</span></label><br><br>
+  <label><input type="checkbox" name="printOption" value="pdf"> <span data-i18n="exportPDF">📥 تصدير كملف PDF</span></label><br><br>
+  <label><input type="checkbox" name="printOption" value="excel"> <span data-i18n="exportExcel">📊 تصدير كملف Excel</span></label><br><br>
+  <div style="text-align: center; margin-top: 15px;">
+    <button type="button" onclick="executePrintOptions()" data-i18n="proceed">✅ استمر</button>
+    <button type="button" onclick="togglePrintOptions()" style="background: #dc3545; margin-right: 10px;" data-i18n="cancel">❌ إلغاء</button>
+  </div>
+</form>
+</div>
+<script>
+      function togglePrintOptions() {
+  const printContainer = document.getElementById('print-options-container');
+  const otherSections = [
+    'product-actions-container',
+    'timer-form-container',
+    'timers-table-container',
+    'products-container'
+  ];
+let currentUserEmail = null;
+
+function handleCredentialResponse(response) {
+  const jwt = response.credential;
+  // فك تشفير JWT بشكل مبسط للحصول على الإيميل (يمكن استخدام مكتبة jwt-decode لو مسموح)
+  const base64Url = jwt.split('.')[1];
+  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+  }).join(''));
+  const user = JSON.parse(jsonPayload);
+  currentUserEmail = user.email;
+
+  // تحقق صلاحية الإيميل مع Google Apps Script
+  checkUserAuthorization(currentUserEmail);
+}
+
+function checkUserAuthorization(email) {
+  const url = 'YOUR_DEPLOYED_WEB_APP_URL?email=' + encodeURIComponent(email);
+
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      if (data.authorized) {
+        // سمح بالدخول
+        alert('مرحباً ' + email + '، تم التحقق من صلاحياتك.');
+        initializeApp(); // وظيفة لبدء التطبيق / عرض المحتوى
+      } else {
+        alert('عذراً، ليس لديك صلاحية استخدام هذا التطبيق.');
+        document.body.innerHTML = '<h2>لا تملك صلاحيات الدخول</h2>';
+      }
+    })
+    .catch(err => {
+      alert('حدث خطأ في التحقق من الصلاحيات.');
+      console.error(err);
+    });
+}
+
+function initializeApp() {
+  // استدعاء كل الوظائف الحالية التي تعرض المحتوى 
+  translateUI();
+  renderProductOptions();
+  renderTimers();
+  if (timers.length > 0) {
+    showSection('timers-table-container');
+  }
+  setInterval(updateTimersOnly, 1000);
+}
+
+// بدء تسجيل الدخول مع جوجل تلقائياً
+window.onload = () => {
+  google.accounts.id.initialize({
+    client_id: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
+    callback: handleCredentialResponse
+  });
+  google.accounts.id.renderButton(
+    document.getElementById('googleSignInDiv'),
+    { theme: 'outline', size: 'large', text: 'signin_with' }  // زر تسجيل الدخول
+  );
+  google.accounts.id.prompt(); // تظهر تلقائياً نافذة تسجيل الدخول إذا لم يسجل
+};
+
+  // إذا كان ظاهرًا، نخفيه ونظهر المؤقتات كخيار افتراضي
+  if (printContainer.style.display === 'block') {
+    printContainer.style.display = 'none';
+    showSection('timers-table-container'); // أو أي قسم آخر افتراضي
+  } else {
+    // نخفي جميع الأقسام الأخرى
+    otherSections.forEach(id => {
+      document.getElementById(id).style.display = 'none';
+    });
+    // نعرض كونتينر الطباعة
+    printContainer.style.display = 'block';
+  }
+}
+
+
+  function executePrintOptions() {
+    const checkboxes = document.querySelectorAll('#print-options-form input[type="checkbox"]');
+    const selected = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+
+    if (selected.length === 0) {
+      alert('يرجى اختيار إجراء واحد على الأقل.');
+      return;
+    }
+
+    if (selected.includes('all')) {
+      printTable(timers, '📋 جدول المؤقتات الكامل');
+    }
+
+    if (selected.includes('active')) {
+      const activeTimers = timers.filter(t => t.expirationTime > Date.now());
+      printTable(activeTimers, '📋 المؤقتات النشطة');
+    }
+
+    if (selected.includes('sticker')) {
+      printStickers();
+    }
+
+    if (selected.includes('pdf')) {
+      exportToPDF();
+    }
+
+    if (selected.includes('excel')) {
+      exportToExcel();
+    }
+
+    togglePrintOptions();
+  }
+
+  function printTable(data, title) {
+    let html = `<h2 style='text-align:center'>${title}</h2><table border='1' style='width:100%; border-collapse:collapse;'><tr><th>القسم</th><th>المنتج</th><th>المدة</th><th>الكمية</th><th>وقت التجهيز</th><th>وقت الانتهاء</th></tr>`;
+    data.forEach(t => {
+      html += `<tr><td>${t.section}</td><td>${t.product}</td><td>${t.duration}</td><td>${t.quantity}</td><td>${formatDateTime(t.preparedTime)}</td><td>${formatDateTime(t.expirationTime)}</td></tr>`;
+    });
+    html += `</table>`;
+    const win = window.open('', '', 'height=700,width=900');
+    win.document.write('<html><head><title>' + title + '</title></head><body>' + html + '</body></html>');
+    win.document.close();
+    win.print();
+  }
+async function printStickers() {
+  const activeTimers = timers.filter(t => t.expirationTime > Date.now());
+  if (activeTimers.length === 0) return alert('No active timers.');
+
+  try {
+    let html = `
+      <html>
+      <head>
+        <title>Product Stickers</title>
+        <style>
+          @media print {
+            body {
+              margin: 0;
+              padding: 0;
+            }
+          }
+
+          body {
+            font-family: 'Arial', sans-serif;
+            background: #fff;
+            margin: 0;
+            padding: 0.05in;
+          }
+
+          .sticker {
+            display: inline-block;
+            border: 1px solid #000;
+            padding: 0.08in;
+            margin: 0.05in;
+            box-sizing: border-box;
+            font-size: 7pt;
+            line-height: 1.2;
+            width: auto;
+            max-width: 2in;
+          }
+
+          .info div {
+            margin: 0.02in 0;
+          }
+
+          .info strong {
+            font-size: 8pt;
+          }
+        </style>
+      </head>
+      <body>
+    `;
+
+    activeTimers.forEach(t => {
+      for (let i = 0; i < t.quantity; i++) {
+        html += `
+          <div class="sticker">
+            <div class="info">
+              <div><strong>Product:</strong> ${t.product}</div>
+              <div><strong>Prepared At:</strong> ${formatDateTime(t.preparedTime)}</div>
+              <div><strong>Expires At:</strong> ${formatDateTime(t.expirationTime)}</div>
+            </div>
+          </div>
+        `;
+      }
+    });
+
+    html += `
+      </body>
+      </html>
+    `;
+
+    const win = window.open('', '', 'height=900,width=700');
+    win.document.write(html);
+    win.document.close();
+    win.print();
+
+  } catch (error) {
+    alert('Failed to print stickers: ' + error.message);
+  }
+}
+
+  function exportToExcel() {
+    const activeTimers = timers.filter(t => t.expirationTime > Date.now());
+    let csv = 'القسم,المنتج,المدة,الكمية,التجهيز,الانتهاء\n';
+    activeTimers.forEach(t => {
+      csv += `${t.section},${t.product},${t.duration},${t.quantity},${formatDateTime(t.preparedTime)},${formatDateTime(t.expirationTime)}\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'timers.csv';
+    link.click();
+  }
+</script>
+
+  <!-- ✅ قسم إعدادات المنتجات + أزرار الإجراءات -->
+  <div class="section-container" id="product-actions-container" style="display:none">
+    <div class="section-title" data-i18n="productActionsTitle">🛠️ إجراءات المنتجات</div>
+    <div class="settings" style="margin-bottom: 15px;">
+      <input type="text" id="newSection" placeholder="اسم القسم" data-i18n-placeholder="section"/>
+      <input type="text" id="productAr" placeholder="اسم المنتج بالعربية" />
+      <input type="text" id="productEn" placeholder="Product Name in English" />
+      <input type="number" id="defaultDuration" placeholder="مدة التحضير (ساعات)" />
+      <button onclick="addProductSetting()">➕</button>
+    </div>
+    <div class="settings">
+      <button onclick="alert('إضافة')" data-i18n="addBtn">➕ إضافة</button>
+      <button onclick="alert('تعديل')" data-i18n="editBtn">✏️ تعديل</button>
+      <button onclick="alert('حذف')" data-i18n="deleteBtn">❌ حذف</button>
+      <button onclick="alert('استيراد')" data-i18n="importBtn">📥 استيراد</button>
+      <button onclick="alert('تصدير')" data-i18n="exportBtn">📤 تصدير</button>
+      <button onclick="alert('طباعة')" data-i18n="printBtn">🖨️ طباعة</button>
+	  <button onclick="showSoundSettings()" data-i18n="soundSettingsBtn">🔊 إعدادات التنبيه</button>
+	  <button class="btn-toggle" onclick="fetchFromGoogleSheet()">🔄 Dataupdating</button>
+
+    </div>
+  </div>
+
+  <div class="section-container" id="timer-form-container" style="display:none">
+    <div class="section-title" data-i18n="add">➕ إضافة مؤقت جديد</div>
+    <form id="timerForm">
+      <select id="sectionSelect"></select>
+      <select id="productSelect"></select>
+      <input type="number" id="quantity" placeholder="الكمية" required data-i18n-placeholder="quantity" />
+      <button type="submit" data-i18n="add">➕ اضافة مؤقت</button>
+    </form>
+  </div>
+
+  <div class="section-container" id="timers-table-container" style="display:none">
+    <div class="section-title" data-i18n="timersTable">📋 جدول المؤقتات</div>
+    <table>
+      <thead>
+        <tr>
+          <th data-i18n="remaining">⏳ الوقت المتبقي</th>
+          <th data-i18n="section">🏷️ القسم</th>
+          <th data-i18n="product">📦 المنتج</th>
+          <th data-i18n="duration">⏱️ المدة</th>
+          <th data-i18n="quantity">🔢 الكمية</th>
+          <th data-i18n="prepared">📅 وقت التجهيز</th>
+          <th data-i18n="expires">📆 وقت الانتهاء</th>
+          <th data-i18n="action">⚙️ الإجراء</th>
+        </tr>
+      </thead>
+      <tbody id="timerBody"></tbody>
+    </table>
+  </div>
+  
+
+  <div class="section-container" id="products-container" style="display:none">
+    <div class="section-title">عرض المنتجات</div>
+    <div id="products-list"></div>
+  </div>
+</div>
+<div class="section-container" id="sound-settings-container" style="display:none">
+  <div class="section-title" data-i18n="soundSettingsTitle">🔊 إعدادات التنبيه</div>
+
+  <label data-i18n="selectSound">🎵 اختر الصوت:</label><br>
+  <input type="file" id="soundFileInput" accept="audio/*" />
+  <br><label data-i18n="orUrl">أو ضع رابط صوت:</label>
+  <input type="url" id="soundUrlInput" placeholder="رابط صوت خارجي" /><br>
+
+  <label data-i18n="alertTime">⏰ وقت التنبيه قبل الانتهاء (بالثواني):</label>
+  <input type="number" id="alertBeforeSeconds" value="0" min="0" /><br>
+
+  <label data-i18n="repeatSound">🔁 تكرار الصوت:</label>
+  <input type="checkbox" id="repeatSound" /><br>
+
+  <label data-i18n="volume">🔉 مستوى الصوت:</label>
+  <input type="range" id="volumeControl" min="0" max="1" step="0.1" value="1" /><br>
+
+  <button onclick="testSound()" data-i18n="testSound">🔊 اختبار</button>
+  <button onclick="saveSoundSettings()" data-i18n="saveSound">💾 حفظ الإعدادات</button>
+</div>
+
+<audio id="alertSound" src="https://www.soundjay.com/buttons/sounds/beep-07.mp3" preload="auto"></audio>
+
+<script>
+  async function fetchFromGoogleSheet() {
+    const sheetUrl = "https://script.google.com/macros/s/AKfycbzed4qYRv8FOZs7Lmo5LG6bmWqo5soAcTvsHAc60BN835rkqHeJ-moecqf_5DCwpXe-/exec"; // 🔁 استبدله بالرابط الفعلي
+    try {
+      const res = await fetch(sheetUrl);
+      const data = await res.json();
+
+      const importedSettings = {};
+      data.forEach(item => {
+        if (!importedSettings[item.section]) importedSettings[item.section] = [];
+        importedSettings[item.section].push({
+          ar: item.ar,
+          en: item.en,
+          duration: parseFloat(item.duration)
+        });
+      });
+
+      settings = importedSettings;
+      localStorage.setItem('settings', JSON.stringify(settings));
+      renderProductOptions();
+      alert('✅ تم استيراد البيانات من قاعدة البيانات');
+    } catch (err) {
+      console.error(err);
+      alert('❌ فشل الاتصال بقاعدة البيانات');
+    }
+  }
+</script>
+
+<script>
+  let timers = JSON.parse(localStorage.getItem('timers') || '[]');
+  let settings = JSON.parse(localStorage.getItem('settings') || '{}');
+  let currentLang = 'ar';
+
+  function addProductSetting() {
+    const section = document.getElementById('newSection').value.trim();
+    const nameAr = document.getElementById('productAr').value.trim();
+    const nameEn = document.getElementById('productEn').value.trim();
+    const duration = parseFloat(document.getElementById('defaultDuration').value);
+    if (!section || !nameAr || !nameEn || isNaN(duration)) return alert(currentLang === 'ar' ? 'يرجى إدخال كافة البيانات' : 'Please enter all data');
+    if (!settings[section]) settings[section] = [];
+    const exists = settings[section].some(p => p.ar === nameAr || p.en.toLowerCase() === nameEn.toLowerCase());
+    if (exists) return alert(currentLang === 'ar' ? 'المنتج مضاف مسبقاً' : 'Product already exists');
+    settings[section].push({ ar: nameAr, en: nameEn, duration });
+    localStorage.setItem('settings', JSON.stringify(settings));
+    renderProductOptions();
+    alert(currentLang === 'ar' ? 'تمت إضافة المنتج' : 'Product added');
+  }
+let soundSettings = JSON.parse(localStorage.getItem('soundSettings') || '{}');
+let customAudio = new Audio();
+customAudio.volume = soundSettings.volume || 1;
+
+function showSoundSettings() {
+  showSection('sound-settings-container');
+  document.getElementById('alertBeforeSeconds').value = soundSettings.alertBefore || 0;
+  document.getElementById('repeatSound').checked = soundSettings.repeat || false;
+  document.getElementById('volumeControl').value = soundSettings.volume || 1;
+}
+
+function testSound() {
+  if (customAudio.src) {
+    customAudio.play();
+  } else {
+    alert(currentLang === 'ar' ? 'الرجاء اختيار صوت أولاً' : 'Please select a sound first');
+  }
+}
+
+document.getElementById('soundFileInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (file) {
+    const url = URL.createObjectURL(file);
+    customAudio.src = url;
+  }
+});
+function saveSoundSettings() {
+  const url = document.getElementById('soundUrlInput').value;
+  const alertBefore = parseInt(document.getElementById('alertBeforeSeconds').value);
+  const repeat = document.getElementById('repeatSound').checked;
+  const volume = parseFloat(document.getElementById('volumeControl').value);
+
+  if (url) customAudio.src = url;
+  customAudio.loop = repeat;
+  customAudio.volume = volume;
+
+  soundSettings = { alertBefore, repeat, volume, url: customAudio.src };
+  localStorage.setItem('soundSettings', JSON.stringify(soundSettings));
+
+  alert(currentLang === 'ar' ? '✅ تم حفظ الإعدادات' : '✅ Settings saved');
+
+  showSection('timers-container'); // ← هذا هو السطر الجديد
+}
+
+function showSection(id) {
+  document.querySelectorAll('.section-container').forEach(el => el.style.display = 'none');
+  document.getElementById(id).style.display = 'block';
+}
+
+
+  function showProductActions() {
+    ['product-actions-container', 'timer-form-container', 'timers-table-container', 'products-container'].forEach(id => {
+      document.getElementById(id).style.display = 'none';
+    });
+    document.getElementById('product-actions-container').style.display = 'block';
+  }
+
+  function showProducts() {
+    const container = document.getElementById('products-list');
+    container.innerHTML = '';
+    Object.keys(settings).forEach(sec => {
+      const div = document.createElement('div');
+      div.innerHTML = `<strong>${sec}</strong>`;
+      settings[sec].forEach(prod => {
+        const p = document.createElement('div');
+        p.textContent = `${prod[currentLang]} - ${prod.duration} ساعات`;
+        div.appendChild(p);
+      });
+      container.appendChild(div);
+    });
+    showSection('products-container');
+  }
+function renderProductOptions() {
+  const sectionSelect = document.getElementById('sectionSelect');
+  const productSelect = document.getElementById('productSelect');
+
+  sectionSelect.innerHTML = '';
+  productSelect.innerHTML = '';
+
+  const sections = Object.keys(settings);
+  sections.forEach(sec => {
+    const opt = document.createElement('option');
+    opt.value = sec;
+    opt.textContent = sec;
+    sectionSelect.appendChild(opt);
+  });
+
+  if (sections.length > 0) {
+    const firstSection = sections[0];
+    settings[firstSection].forEach(prod => {
+      const opt = document.createElement('option');
+      opt.value = prod.ar;
+      opt.textContent = prod.ar;
+      productSelect.appendChild(opt);
+    });
+  }
+
+  // تحديث المنتجات عند تغيير القسم
+  sectionSelect.onchange = () => {
+    const selected = sectionSelect.value;
+    productSelect.innerHTML = '';
+    settings[selected].forEach(prod => {
+      const opt = document.createElement('option');
+      opt.value = prod.ar;
+      opt.textContent = prod.ar;
+      productSelect.appendChild(opt);
+    });
+  };
+}
+
+  function renderProductOptions() {
+    const sectionSel = document.getElementById('sectionSelect');
+    const productSel = document.getElementById('productSelect');
+    sectionSel.innerHTML = '';
+    Object.keys(settings).forEach(sec => {
+      const opt = document.createElement('option');
+      opt.value = sec;
+      opt.textContent = sec;
+      sectionSel.appendChild(opt);
+    });
+    sectionSel.onchange = () => {
+      const sec = sectionSel.value;
+      productSel.innerHTML = '';
+      settings[sec]?.forEach(prod => {
+        const opt = document.createElement('option');
+        opt.value = JSON.stringify(prod);
+        opt.textContent = prod[currentLang];
+        productSel.appendChild(opt);
+      });
+    };
+    sectionSel.dispatchEvent(new Event('change'));
+  }
+
+  document.getElementById('timerForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const sec = document.getElementById('sectionSelect').value;
+    const prod = JSON.parse(document.getElementById('productSelect').value);
+    const quantity = parseInt(document.getElementById('quantity').value);
+    const preparedTime = Date.now();
+    const expirationTime = preparedTime + prod.duration * 3600000;
+    timers.push({ section: sec, product: prod[currentLang], duration: prod.duration, quantity, preparedTime, expirationTime });
+    localStorage.setItem('timers', JSON.stringify(timers));
+    this.reset();
+    showSection('timers-table-container');
+    renderTimers();
+  });
+
+  function renderTimers() {
+    const tbody = document.getElementById('timerBody');
+    tbody.innerHTML = '';
+    timers.forEach((t, i) => {
+      const tr = document.createElement('tr');
+      const remaining = t.expirationTime - Date.now();
+      const time = remaining > 0 ? new Date(remaining).toISOString().substr(11, 8) : '⛔';
+      tr.innerHTML = `
+        <td id="timer-${i}" class="digital-timer ${remaining <= 0 ? 'expired' : ''}">${time}</td>
+        <td>${t.section}</td>
+        <td>${t.product}</td>
+        <td>${t.duration}</td>
+        <td>${t.quantity}</td>
+        <td>${formatDateTime(t.preparedTime)}</td>
+        <td>${formatDateTime(t.expirationTime)}</td>
+        <td>
+
+          <select id="action-${i}">
+            <option value="sell">${currentLang === 'ar' ? 'بيع' : 'Sell'}</option>
+            <option value="dispose">${currentLang === 'ar' ? 'إتلاف' : 'Dispose'}</option>
+            <option value="delete">${currentLang === 'ar' ? 'حذف' : 'Delete'}</option>
+			
+          </select>
+          <button class="btn-action" onclick="handleAction(${i})">${currentLang === 'ar' ? 'تنفيذ' : 'Execute'}</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function updateTimersOnly() {
+    timers.forEach((t, i) => {
+      const timerCell = document.getElementById(`timer-${i}`);
+      if (timerCell) {
+        const remaining = t.expirationTime - Date.now();
+        const expired = remaining <= 0;
+        timerCell.textContent = expired ? '⛔' : new Date(remaining).toISOString().substr(11, 8);
+        timerCell.classList.toggle('expired', expired);
+        if (expired && !timerCell.dataset.alerted) {
+          document.getElementById('alertSound').play();
+          timerCell.dataset.alerted = 'true';
+        }
+      }
+    });
+  }
+  
+function handleAction(i) {
+  const action = document.getElementById(`action-${i}`).value;
+  const remaining = timers[i].expirationTime - Date.now();
+
+  // تحقق من البيع في حال بقاء أقل من 10 دقائق (600,000 مللي ثانية)
+  if (action === 'sell' && remaining <= 600000) {
+    alert(currentLang === 'ar' 
+      ? '⛔ لا يمكن بيع المنتج الآن. يجب إتلافه فوراً.' 
+      : '⛔ Cannot sell the product now. It must be disposed of immediately.');
+    return;
+  }
+
+  if (action === 'delete') {
+    const pwd = prompt(currentLang === 'ar' ? 'ادخل كلمة المرور لحذف المؤقت:' : 'Enter password:');
+    if (pwd !== '123') {
+      alert(currentLang === 'ar' ? 'كلمة المرور غير صحيحة' : 'Wrong password');
+      return;
+    }
+    timers.splice(i, 1);
+  } else {
+    timers[i].quantity--;
+    if (timers[i].quantity <= 0) {
+      timers.splice(i, 1);
+    }
+  }
+
+  localStorage.setItem('timers', JSON.stringify(timers));
+  renderTimers();
+}
+
+
+  function formatDateTime(ts) {
+    return new Date(ts).toLocaleString(currentLang === 'ar' ? 'ar-EG' : 'en-US');
+  }
+
+  function toggleLanguage() {
+    currentLang = currentLang === 'ar' ? 'en' : 'ar';
+    translateUI();
+    renderProductOptions();
+    renderTimers();
+  }
+
+  const translations = {
+    ar: {
+      title: "🕒 عداد المنتجات",
+      header: "🛒 إدارة المنتجات",
+      section: "القسم",
+      product: "المنتج",
+      duration: "⏱️ المدة",
+      quantity: "🔢 الكمية",
+      add: "➕ اضافة مؤقت",
+      timersTable: "📋 جدول المؤقتات",
+      remaining: "⏳ الوقت المتبقي",
+      action: "⚙️ الإجراء",
+      prepared: "📅 وقت التجهيز",
+      expires: "📆 وقت الانتهاء",
+      productActionsTitle: "🛠️ إجراءات المنتجات",
+      addBtn: "➕ إضافة",
+      editBtn: "✏️ تعديل",
+      deleteBtn: "❌ حذف",
+      importBtn: "📥 استيراد",
+      exportBtn: "📤 تصدير",
+      printBtn: "🖨️ طباعة",
+    printOptions: "🖨️ خيارات الطباعة",
+    showProducts: "👁️ عرض المنتجات",
+    printOptionsTitle: "📄 خيارات الطباعة",
+    printAll: "🗂️ طباعة جدول المؤقتات كامل",
+    printActive: "🔄 طباعة المؤقتات النشطة",
+    printSticker: "🏷️ طباعة ملصق لمنتج واحد",
+    exportPDF: "📥 تصدير كملف PDF",
+    exportExcel: "📊 تصدير كملف Excel",
+    proceed: "✅ استمر",
+    cancel: "❌ إلغاء",
+    },
+    en: {
+      title: "🕒 Product Timer",
+      header: "🛒 Product Management",
+      section: "Section",
+      product: "Product",
+      duration: "⏱️ Duration",
+      quantity: "🔢 Quantity",
+      add: "➕ Add Timer",
+      timersTable: "📋 Timers Table",
+      remaining: "⏳ Time Left",
+      action: "⚙️ Action",
+      prepared: "📅 Prepared At",
+      expires: "📆 Expires At",
+      productActionsTitle: "🛠️ Product Actions",
+      addBtn: "➕ Add",
+      editBtn: "✏️ Edit",
+      deleteBtn: "❌ Delete",
+      importBtn: "📥 Import",
+      exportBtn: "📤 Export",
+      printBtn: "🖨️ Print",
+	  
+    printOptions: "🖨️ Print Options",
+    showProducts: "👁️ Show Products",
+    printOptionsTitle: "📄 Print Options",
+    printAll: "🗂️ Print Full Timer Table",
+    printActive: "🔄 Print Active Timers",
+    printSticker: "🏷️ Print Single Product Label",
+    exportPDF: "📥 Export as PDF",
+    exportExcel: "📊 Export as Excel",
+    proceed: "✅ Continue",
+    cancel: "❌ Cancel",
+    }
+  };
+
+  function translateUI() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (translations[currentLang][key]) el.textContent = translations[currentLang][key];
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+      const key = el.getAttribute('data-i18n-placeholder');
+      if (translations[currentLang][key]) el.placeholder = translations[currentLang][key];
+    });
+    document.querySelector('.lang-toggle').textContent = currentLang === 'ar' ? 'English' : 'العربية';
+    document.body.style.direction = currentLang === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = currentLang;
+	translations.ar.soundSettingsBtn = "🔊 إعدادات التنبيه";
+translations.en.soundSettingsBtn = "🔊 Sound Settings";
+
+translations.ar.soundSettingsTitle = "🔊 إعدادات التنبيه";
+translations.en.soundSettingsTitle = "🔊 Sound Settings";
+
+translations.ar.selectSound = "🎵 اختر الصوت:";
+translations.en.selectSound = "🎵 Select sound:";
+
+translations.ar.orUrl = "أو ضع رابط صوت:";
+translations.en.orUrl = "Or provide a sound URL:";
+
+translations.ar.alertTime = "⏰ وقت التنبيه قبل الانتهاء (بالثواني):";
+translations.en.alertTime = "⏰ Alert time before expiry (seconds):";
+
+translations.ar.repeatSound = "🔁 تكرار الصوت:";
+translations.en.repeatSound = "🔁 Repeat sound:";
+
+translations.ar.volume = "🔉 مستوى الصوت:";
+translations.en.volume = "🔉 Volume:";
+
+translations.ar.testSound = "🔊 اختبار";
+translations.en.testSound = "🔊 Test";
+
+translations.ar.saveSound = "💾 حفظ الإعدادات";
+translations.en.saveSound = "💾 Save Settings";
+
+  }
+translateUI();
+renderProductOptions();
+renderTimers();
+setInterval(updateTimersOnly, 1000);
+
+// ✅ إظهار جدول المؤقتات تلقائياً إذا كان هناك مؤقتات
+if (timers.length > 0) {
+  showSection('timers-table-container');
+  renderTimers();
+}
+
+</script>
+</body>
+</html>

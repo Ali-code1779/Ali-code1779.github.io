@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مؤقت حساب سرعة الخدمة</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+      background-color: #f4f7fc;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+
+    header {
+      background-color: #0056b3;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 1.8rem;
+      font-weight: bold;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 30px auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .content {
+      padding: 30px;
+    }
+
+    h2 {
+      color: #444;
+      margin-bottom: 20px;
+      font-size: 1.4rem;
+    }
+
+    label {
+      display: block;
+      margin: 10px 0 5px;
+      font-size: 1rem;
+      color: #555;
+    }
+
+    input, select, range {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+      background-color: #0056b3;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #003f7f;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 30px;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    table th, table td {
+      text-align: center;
+      padding: 12px;
+      border: 1px solid #ddd;
+      font-size: 1rem;
+    }
+
+    table th {
+      background-color: #f8f9fa;
+    }
+
+    .late {
+      background-color: #ffcccc;
+      color: red;
+    }
+
+    .halfway {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+
+    .delivered {
+      background-color: #d4edda;
+      color: green;
+    }
+
+    .volume-control {
+      display: flex;
+      align-items: center;
+      margin-top: 15px;
+    }
+
+    .volume-control label {
+      margin-right: 10px;
+      font-size: 1rem;
+    }
+
+    .volume-control input {
+      width: 80%;
+    }
+
+    .add-timer-btn {
+      width: 100%;
+      padding: 12px;
+      background-color: #28a745;
+      color: white;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .add-timer-btn:hover {
+      background-color: #218838;
+    }
+
+    .timer-inputs {
+      display: none;
+    }
+
+    .timer-clock {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+  </style>
+</head>
+<body>
+  <header>
+    مؤقت حساب سرعة الخدمة ⏱️
+  </header>
+
+  <div class="container">
+    <div class="content">
+      <h2>إضافة مؤقت جديد 🕒</h2>
+      <button class="add-timer-btn" onclick="toggleTimerInputs()">إضافة مؤقت جديد ➕</button>
+
+      <div class="timer-inputs">
+        <label for="cashierId">رقم الكاشير 💼:</label>
+        <input type="text" id="cashierId" placeholder="أدخل رقم الكاشير">
+
+        <label for="orderId">رقم الطلب 📦:</label>
+        <input type="text" id="orderId" placeholder="أدخل رقم الطلب">
+
+        <label for="serviceLocation">موقع الخدمة 🏠:</label>
+        <select id="serviceLocation">
+          <option value="صالة الأفراد">صالة الأفراد</option>
+          <option value="قسم العائلات">قسم العائلات</option>
+          <option value="خدمة سيارات">خدمة سيارات</option>
+          <option value="خدمة التوصيل للمنازل">خدمة التوصيل للمنازل</option>
+          <option value="هرفي آب">هرفي آب</option>
+          <option value="هنجراستيشن">هنجراستيشن</option>
+          <option value="تويو">تويو</option>
+          <option value="جاهز">جاهز</option>
+          <option value="مرسول">مرسول</option>
+        </select>
+
+        <label for="orderValue">قيمة الطلب بالريال 💵:</label>
+        <input type="number" id="orderValue" placeholder="أدخل قيمة الطلب" min="0" step="0.01">
+
+        <div class="volume-control">
+          <label for="volume">مستوى الصوت 🔊:</label>
+          <input type="range" id="volume" min="0" max="1" step="0.1" value="0.5">
+        </div>
+
+        <button onclick="startTimer()">بدء المؤقت ⏳</button>
+      </div>
+
+      <h2>المؤقتات المسجلة 📝</h2>
+      <table id="timersTable">
+        <thead>
+          <tr>
+            <th>رقم الكاشير 💼</th>
+            <th>رقم الطلب 📦</th>
+            <th>موقع الخدمة 🏠</th>
+            <th>قيمة الطلب 💵</th>
+            <th>الوقت المتبقي ⏰</th>
+            <th>الإجراء 🖊️</th>
+          </tr>
+        </thead>
+        <tbody id="timersBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <audio id="startSound" src="start.mp3"></audio>
+  <audio id="halfwaySound" src="halfway.mp3"></audio>
+  <audio id="endSound" src="end.mp3"></audio>
+
+  <script>
+    const timers = [];
+    const standardTime = 360; // 6 دقائق بالثواني
+    const volumeControl = document.getElementById('volume');
+
+    function toggleTimerInputs() {
+      const timerInputs = document.querySelector('.timer-inputs');
+      const timersTable = document.getElementById('timersTable');
+      const addTimerBtn = document.querySelector('.add-timer-btn');
+
+      if (timerInputs.style.display === "none" || timerInputs.style.display === "") {
+        timerInputs.style.display = "block";
+        timersTable.style.display = "none";
+      } else {
+        timerInputs.style.display = "none";
+        timersTable.style.display = "block";
+      }
+    }
+
+    function startTimer() {
+      const cashierId = document.getElementById('cashierId').value;
+      const orderId = document.getElementById('orderId').value;
+      const serviceLocation = document.getElementById('serviceLocation').value;
+      const orderValue = parseFloat(document.getElementById('orderValue').value);
+      const timerEndTime = Date.now() + standardTime * 1000;
+
+      if (!cashierId || !orderId || !serviceLocation || isNaN(orderValue) || orderValue <= 0) {
+        alert("يرجى تعبئة كافة الحقول.");
+        return;
+      }
+
+      const newTimer = {
+        cashierId,
+        orderId,
+        serviceLocation,
+        orderValue,
+        endTime: timerEndTime,
+        status: "نشط",
+        delivered: false
+      };
+
+      playSound('startSound');
+      timers.push(newTimer);
+      updateTimersTable();
+    }
+
+    function updateTimersTable() {
+      const timersBody = document.getElementById('timersBody');
+      timersBody.innerHTML = '';
+
+      timers.sort((a, b) => a.endTime - b.endTime);
+
+      timers.forEach((timer, index) => {
+        const remainingTime = Math.round((timer.endTime - Date.now()) / 1000);
+        const tr = document.createElement('tr');
+
+        if (remainingTime <= 0) {
+          timer.status = 'تم التسليم';
+        }
+
+        tr.innerHTML = `
+          <td>${timer.cashierId}</td>
+          <td>${timer.orderId}</td>
+          <td>${timer.serviceLocation}</td>
+          <td>${timer.orderValue}</td>
+          <td>${formatTime(remainingTime)}</td>
+          <td>
+            <button onclick="completeTimer(${index})" class="delivered-btn">تم التسليم</button>
+          </td>
+        `;
+
+        if (timer.status === 'تم التسليم') {
+          tr.classList.add('delivered');
+        } else if (remainingTime <= standardTime / 2) {
+          playSound('halfwaySound');
+          tr.classList.add('halfway');
+        }
+
+        if (remainingTime <= 0) {
+          tr.classList.add('late');
+        }
+
+        timersBody.appendChild(tr);
+      });
+    }
+
+    function playSound(id) {
+      const sound = document.getElementById(id);
+      sound.volume = parseFloat(volumeControl.value);
+      sound.play();
+    }
+
+    function formatTime(seconds) {
+      const minutes = Math.floor(seconds / 60);
+      const remainingSeconds = seconds % 60;
+      return `${minutes} دقيقة ${remainingSeconds} ثانية`;
+    }
+
+    function completeTimer(index) {
+      timers[index].status = 'تم التسليم';
+      timers[index].delivered = true;
+      playSound('endSound');
+      updateTimersTable();
+    }
+
+    setInterval(updateTimersTable, 1000);
+  </script>
+</body>
+</html>

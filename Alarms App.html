@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>تطبيق المنبهات</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f8f8f8;
+      color: #333;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .dark-mode {
+      background-color: #1e1e1e;
+      color: #e0e0e0;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background-color: #4a90e2;
+      color: white;
+      padding: 12px 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      flex-shrink: 0;
+    }
+    .header-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .buttons-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    button {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 8px;
+      background-color: #fff;
+      color: #333;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #ddd;
+    }
+    .dark-mode button {
+      background-color: #444;
+      color: #eee;
+    }
+    .container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 10px 20px;
+      overflow: hidden;
+    }
+    .alarms-wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      flex: 1;
+      overflow-y: auto;
+    }
+    .alarm-group {
+      flex: 1 1 300px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      background-color: #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      transition: background-color 0.3s;
+    }
+    .dark-mode .alarm-group {
+      background-color: #2b2b2b;
+      border-color: #444;
+    }
+    .alarm-group h2 {
+      font-size: 1.2rem;
+      border-bottom: 2px solid #4a90e2;
+      margin-bottom: 5px;
+      padding-bottom: 5px;
+      flex-shrink: 0;
+    }
+    .alarms-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 0;
+    }
+    .alarm-box {
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      padding: 14px;
+      transition: transform 0.2s, background-color 0.3s;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .alarm-box:hover {
+      transform: scale(1.03);
+      background-color: #f0f0f0;
+    }
+    .dark-mode .alarm-box {
+      background-color: #2b2b2b;
+      border-color: #444;
+    }
+    .dark-mode .alarm-box:hover {
+      background-color: #3a3a3a;
+    }
+    .emoji {
+      font-size: 1.8rem;
+    }
+    .alarm-box h3 {
+      font-size: 1rem;
+    }
+    .alarm-box p {
+      font-size: 0.85rem;
+      color: #555;
+    }
+    .dark-mode .alarm-box p {
+      color: #ccc;
+    }
+    .date-print-container {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-right: auto;
+    }
+    #currentDate {
+      font-size: 0.85rem;
+    }
+    @media (max-width: 600px) {
+      .buttons-container {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .alarms-wrapper {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-container">
+      <div id="appTitle">🔔 تطبيق المنبهات</div>
+      <div class="buttons-container">
+        <button onclick="goToSection('alarms')">المنبهات</button>
+        <button id="btnToggleDarkMode" onclick="toggleDarkMode()">الوضع الليلي</button>
+        <button onclick="logout()">تسجيل الخروج</button>
+        <button onclick="goToHome()">الرئيسية</button>
+        <button onclick="goToAbout()">من نحن</button>
+        <button onclick="goToHelp()">المساعدة</button>
+        <button id="langSwitchBtn" onclick="switchLanguage()"></button>
+        <div class="date-print-container">
+          <button onclick="window.print()">🖨️</button>
+          <div id="currentDate"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container" id="alarmsContainer">
+    <div class="alarms-wrapper" id="alarmsWrapper">
+      <!-- محتوى المنبهات سيضاف هنا -->
+    </div>
+  </div>
+
+  <script>
+    const translations = {
+      ar: {
+        langName: "English",
+        langDir: "rtl",
+        appTitle: "🔔 تطبيق المنبهات",
+        noAccess: "لا تملك صلاحية الوصول إلى هذا التطبيق.",
+        alarms: [
+          // دمج إدارة المنتجات + المخزون + السلامة الغذائية في مجموعة واحدة
+          { group: "إدارة المنتجات والمخزون", type: "product", emoji: "📦", title: "إدارة المنتجات", desc: "منبهات لمتابعة حالة المنتجات ومواعيد صلاحيتها أو توفرها." },
+          { group: "إدارة المنتجات والمخزون", type: "stock_rights", emoji: "📊🔐", title: "صلاحيات المخزون", desc: "تنبيهات للمراجعة الدورية لصلاحيات واستخدامات المخزون." },
+          { group: "إدارة المنتجات والمخزون", type: "food_safety_1", emoji: "🥗", title: "فحص النظافة اليومية", desc: "تنبيهات بالفحص الدوري لنظافة المنشأة." },
+          { group: "إدارة المنتجات والمخزون", type: "food_safety_2", emoji: "🧴", title: "مراقبة درجات الحرارة", desc: "تنبيه لمراقبة درجات حرارة التخزين." },
+
+          // الرخص والأوراق كما هي
+          { group: "الرخص والأوراق", type: "branch_docs", emoji: "📄🏢", title: "رخص وأوراق الفرع", desc: "تنبيهات لتجديد الرخص والتصاريح القانونية الخاصة بالفرع." },
+          { group: "الرخص والأوراق", type: "employee_docs", emoji: "🧑‍💼📃", title: "أوراق الموظفين", desc: "منبهات للوثائق الرسمية للموظفين مثل الإقامات، الهوية، التأمين." },
+
+          // دمج الطلبيات + سرعة الخدمة
+          { group: "الطلبيات وسرعة الخدمة", type: "order_times", emoji: "🕒📦", title: "مواعيد الطلبيات", desc: "تذكيرات دورية بمواعيد وصول أو تجهيز الطلبيات الخاصة بك." },
+          { group: "الطلبيات وسرعة الخدمة", type: "service_speed_1", emoji: "⚡", title: "متابعة سرعة الاستجابة", desc: "تنبيه بشأن سرعة استجابة الخدمة للعملاء." },
+          { group: "الطلبيات وسرعة الخدمة", type: "service_speed_2", emoji: "⏱️", title: "توقيت إنجاز الطلبات", desc: "مراقبة الوقت المستغرق لإنجاز الطلبات." },
+
+          // دمج مهام المدير + ساعات العمل + الرقابة وتقييم الأداء
+          { group: "المهام والإدارة", type: "manager_tasks", emoji: "🧑‍💼📝", title: "منبهات المدير", desc: "مهام دورية للمدير لمتابعة سير العمل والتقارير." },
+          { group: "المهام والإدارة", type: "working_hours", emoji: "⏰👥", title: "ساعات العمل", desc: "تنبيهات بتنظيم ومتابعة دوام الموظفين وراحتهم." },
+          { group: "المهام والإدارة", type: "performance_eval_1", emoji: "📈", title: "تقييم أداء الموظفين", desc: "تنبيهات لتقييم أداء العاملين بشكل دوري." },
+          { group: "المهام والإدارة", type: "performance_eval_2", emoji: "📝", title: "مراقبة الجودة", desc: "تنبيهات لمراقبة جودة الخدمات المقدمة." }
+        ]
+      },
+      en: {
+        langName: "العربية",
+        langDir: "ltr",
+        appTitle: "🔔 Alarm App",
+        noAccess: "You do not have permission to access this app.",
+        alarms: [
+          // Merged Product & Stock Management + Food Safety
+          { group: "Product & Stock Management", type: "product", emoji: "📦", title: "Product Management", desc: "Alerts to track product status, expiry, or availability." },
+          { group: "Product & Stock Management", type: "stock_rights", emoji: "📊🔐", title: "Stock Rights", desc: "Alerts for periodic review of stock permissions and usage." },
+          { group: "Product & Stock Management", type: "food_safety_1", emoji: "🥗", title: "Daily Cleanliness Check", desc: "Alerts for routine facility cleanliness inspection." },
+          { group: "Product & Stock Management", type: "food_safety_2", emoji: "🧴", title: "Temperature Monitoring", desc: "Alert for monitoring storage temperature." },
+
+          // Licenses & Docs
+          { group: "Licenses & Documents", type: "branch_docs", emoji: "📄🏢", title: "Branch Licenses", desc: "Alerts for renewing branch licenses and legal permits." },
+          { group: "Licenses & Documents", type: "employee_docs", emoji: "🧑‍💼📃", title: "Employee Documents", desc: "Alerts for employee official documents like residency, ID, insurance." },
+
+          // Orders & Service Speed
+          { group: "Orders & Service Speed", type: "order_times", emoji: "🕒📦", title: "Order Deadlines", desc: "Periodic reminders for order arrivals or preparation times." },
+          { group: "Orders & Service Speed", type: "service_speed_1", emoji: "⚡", title: "Response Speed Tracking", desc: "Alert about service response speed to customers." },
+          { group: "Orders & Service Speed", type: "service_speed_2", emoji: "⏱️", title: "Order Completion Timing", desc: "Monitor time taken to complete orders." },
+
+          // Management Tasks + Working Hours + Performance Evaluation
+          { group: "Tasks & Management", type: "manager_tasks", emoji: "🧑‍💼📝", title: "Manager Alerts", desc: "Routine manager tasks to follow workflow and reports." },
+          { group: "Tasks & Management", type: "working_hours", emoji: "⏰👥", title: "Working Hours", desc: "Alerts to organize and monitor employee shifts and breaks." },
+          { group: "Tasks & Management", type: "performance_eval_1", emoji: "📈", title: "Employee Performance Evaluation", desc: "Alerts for periodic employee performance reviews." },
+          { group: "Tasks & Management", type: "performance_eval_2", emoji: "📝", title: "Quality Control", desc: "Alerts to monitor service quality." }
+        ]
+      }
+    };
+
+    // تهيئة اللغة حسب اللغة المخزنة أو العربية افتراضياً
+    let currentLang = localStorage.getItem('lang') || 'ar';
+
+    function switchLanguage() {
+      currentLang = currentLang === 'ar' ? 'en' : 'ar';
+      localStorage.setItem('lang', currentLang);
+      applyLanguage();
+    }
+
+    function applyLanguage() {
+      const t = translations[currentLang];
+      document.documentElement.lang = currentLang;
+      document.documentElement.dir = t.langDir;
+      document.getElementById('appTitle').textContent = t.appTitle;
+      document.getElementById('langSwitchBtn').textContent = t.langName;
+      renderAlarms();
+      updateDate();
+    }
+
+    function renderAlarms() {
+      const alarmsWrapper = document.getElementById('alarmsWrapper');
+      alarmsWrapper.innerHTML = '';
+
+      const alarmsByGroup = {};
+      translations[currentLang].alarms.forEach(alarm => {
+        if (!alarmsByGroup[alarm.group]) {
+          alarmsByGroup[alarm.group] = [];
+        }
+        alarmsByGroup[alarm.group].push(alarm);
+      });
+
+      for (const groupName in alarmsByGroup) {
+        const groupAlarms = alarmsByGroup[groupName];
+        const groupDiv = document.createElement('section');
+        groupDiv.classList.add('alarm-group');
+
+        const heading = document.createElement('h2');
+        heading.textContent = groupName;
+        groupDiv.appendChild(heading);
+
+        const grid = document.createElement('div');
+        grid.classList.add('alarms-grid');
+
+        groupAlarms.forEach(alarm => {
+          const box = document.createElement('div');
+          box.classList.add('alarm-box');
+          box.dataset.type = alarm.type;
+
+          const emoji = document.createElement('div');
+          emoji.classList.add('emoji');
+          emoji.textContent = alarm.emoji;
+          box.appendChild(emoji);
+
+          const title = document.createElement('h3');
+          title.textContent = alarm.title;
+          box.appendChild(title);
+
+          const desc = document.createElement('p');
+          desc.textContent = alarm.desc;
+          box.appendChild(desc);
+
+          grid.appendChild(box);
+        });
+
+        groupDiv.appendChild(grid);
+        alarmsWrapper.appendChild(groupDiv);
+      }
+    }
+
+    // تحديث التاريخ الحالي
+    function updateDate() {
+      const now = new Date();
+      const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+      const formattedDate = now.toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US', options);
+      document.getElementById('currentDate').textContent = formattedDate;
+    }
+
+    // التبديل بين الوضع الليلي والنهاري
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      const btn = document.getElementById('btnToggleDarkMode');
+      if(document.body.classList.contains('dark-mode')) {
+        btn.textContent = currentLang === 'ar' ? 'الوضع النهاري' : 'Light Mode';
+      } else {
+        btn.textContent = currentLang === 'ar' ? 'الوضع الليلي' : 'Dark Mode';
+      }
+    }
+
+    // أزرار وهمية للواجهة (لتكملة الوظائف)
+    function goToSection(section) {
+      alert('الانتقال إلى القسم: ' + section);
+    }
+    function logout() {
+      alert('تم تسجيل الخروج');
+    }
+    function goToHome() {
+      alert('العودة إلى الصفحة الرئيسية');
+    }
+    function goToAbout() {
+      alert('صفحة من نحن');
+    }
+    function goToHelp() {
+      alert('صفحة المساعدة');
+    }
+
+    // بدء التنفيذ
+    applyLanguage();
+  </script>
+</body>
+</html>

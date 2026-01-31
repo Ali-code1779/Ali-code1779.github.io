@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>تواصل معنا - موقع علي محفوظ</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- روابط الخطوط والأيقونات -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script defer src="script.js"></script>
+</head>
+<body>
+    <!-- الشريط الجانبي -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2 id="siteTitle">موقع علي محفوظ</h2>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.html" onclick="navigateTo('index.html')"><i class="fas fa-home"></i> <span id="homeText">الرئيسية</span></a></li>
+                <li><a href="apps.html" onclick="navigateTo('apps.html')"><i class="fas fa-th"></i> <span id="appsText">التطبيقات</span></a></li>
+                <li><a href="about.html" onclick="navigateTo('about.html')"><i class="fas fa-info-circle"></i> <span id="aboutText">حولنا</span></a></li>
+                <li><a href="contact.html" onclick="navigateTo('contact.html')"><i class="fas fa-envelope"></i> <span id="contactText">تواصل معنا</span></a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- الشريط العلوي -->
+    <header class="topbar">
+        <div class="datetime">
+            <span id="date"></span>
+            <span id="time"></span>
+            <span id="day"></span>
+        </div>
+        <div class="language-selector">
+            <label for="language" id="languageLabel">اللغة:</label>
+            <select id="language">
+                <option value="ar">العربية</option>
+                <option value="en">English</option>
+                <option value="fr">Français</option>
+                <!-- أضف لغات أخرى حسب الحاجة -->
+            </select>
+        </div>
+    </header>
+
+    <!-- المحتوى الرئيسي -->
+    <div class="main-content">
+        <h1 id="contactTitle">تواصل معنا</h1>
+        <p id="contactDescription">للتواصل معنا، يرجى استخدام النموذج أدناه أو إرسال رسالة عبر الواتساب:</p>
+        <form id="contactForm">
+            <label for="name">الاسم:</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="email">البريد الإلكتروني:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="message">الرسالة:</label>
+            <textarea id="message" name="message" rows="4" required></textarea>
+
+            <button type="submit">إرسال</button>
+        </form>
+        <p id="whatsappText">أو تواصل عبر الواتساب: <a href="https://wa.me/123456789" id="whatsappLink">واتساب</a></p>
+    </div>
+
+    <!-- زر العودة إلى الصفحة الرئيسية -->
+    <a href="index.html" class="floating-button" onclick="navigateTo('index.html')">
+        <i class="fas fa-home"></i> <span id="floatingButtonText">الرئيسية</span>
+    </a>
+
+    <!-- سكريبت عرض الوقت والتاريخ وتغيير اللغة -->
+    <script>
+        // نفس النصوص المترجمة المستخدمة في الصفحة الرئيسية
+        const translations = {
+            ar: {
+                siteTitle: "موقع علي محفوظ",
+                home: "الرئيسية",
+                apps: "التطبيقات",
+                about: "حولنا",
+                contact: "تواصل معنا",
+                contactTitle: "تواصل معنا",
+                contactDescription: "للتواصل معنا، يرجى استخدام النموذج أدناه أو إرسال رسالة عبر الواتساب:",
+                whatsappText: "أو تواصل عبر الواتساب: ",
+                whatsappLink: "واتساب",
+                floatingButton: "الرئيسية",
+                languageLabel: "اللغة:"
+            },
+            en: {
+                siteTitle: "Ali Mahfouz Website",
+                home: "Home",
+                apps: "Apps",
+                about: "About Us",
+                contact: "Contact Us",
+                contactTitle: "Contact Us",
+                contactDescription: "To get in touch with us, please use the form below or send a message via WhatsApp:",
+                whatsappText: "Or contact via WhatsApp: ",
+                whatsappLink: "WhatsApp",
+                floatingButton: "Home",
+                languageLabel: "Language:"
+            },
+            fr: {
+                siteTitle: "Site de Ali Mahfouz",
+                home: "Accueil",
+                apps: "Applications",
+                about: "À propos de nous",
+                contact: "Nous contacter",
+                contactTitle: "Nous contacter",
+                contactDescription: "Pour nous contacter, veuillez utiliser le formulaire ci-dessous ou envoyer un message via WhatsApp:",
+                whatsappText: "Ou contactez-nous via WhatsApp: ",
+                whatsappLink: "WhatsApp",
+                floatingButton: "Accueil",
+                languageLabel: "Langue:"
+            }
+        };
+
+        // تغيير النصوص بناءً على اللغة المحددة
+        function changeLanguage(lang) {
+            const translation = translations[lang];
+            document.getElementById('siteTitle').textContent = translation.siteTitle;
+            document.getElementById('homeText').textContent = translation.home;
+            document.getElementById('appsText').textContent = translation.apps;
+            document.getElementById('aboutText').textContent = translation.about;
+            document.getElementById('contactText').textContent = translation.contact;
+            document.getElementById('contactTitle').textContent = translation.contactTitle;
+            document.getElementById('contactDescription').textContent = translation.contactDescription;
+            document.getElementById('whatsappText').textContent = translation.whatsappText;
+            document.getElementById('whatsappLink').textContent = translation.whatsappLink;
+            document.getElementById('floatingButtonText').textContent = translation.floatingButton;
+            document.getElementById('languageLabel').textContent = translation.languageLabel;
+        }
+
+        // تغيير اللغة عند تغيير الاختيار في القائمة المنسدلة
+        document.getElementById('language').addEventListener('change', (event) => {
+            changeLanguage(event.target.value);
+        });
+
+        // عرض الوقت والتاريخ
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('date').textContent = now.toLocaleDateString();
+            document.getElementById('time').textContent = now.toLocaleTimeString();
+            document.getElementById('day').textContent = now.toLocaleDateString('en-US', { weekday: 'long' });
+        }
+
+        setInterval(updateTime, 1000);
+        updateTime(); // Initialize immediately
+    </script>
+</body>
+</html>

@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <title>إدارة المستخدمين والتابعين مع التطبيقات</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      direction: rtl;
+      margin: 20px;
+      background: #f5f7fa;
+      color: #333;
+    }
+    h2, h3 {
+      color: #005a9c;
+    }
+    label {
+      display: block;
+      margin: 10px 0 5px;
+      font-weight: bold;
+    }
+    input[type=text], input[type=email], input[type=password], select {
+      padding: 8px;
+      width: 300px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1em;
+    }
+    button {
+      background-color: #0078d4;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      font-size: 1em;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #005a9c;
+    }
+    hr {
+      margin: 30px 0;
+      border: 0.5px solid #ccc;
+    }
+    #result {
+      margin-top: 15px;
+      font-weight: bold;
+      min-height: 20px;
+      display: none; /* نبدأ مخفي */
+    }
+    #usersList {
+      width: 320px;
+      height: auto;
+      margin-bottom: 10px;
+    }
+    .user-item {
+      background: white;
+      margin-bottom: 8px;
+      padding: 10px 15px;
+      border-radius: 6px;
+      box-shadow: 0 2px 5px rgb(0 0 0 / 0.1);
+    }
+    .followers-list {
+      background: #e3f2fd;
+      padding: 10px 15px;
+      border-radius: 6px;
+      margin-top: 10px;
+      display: none;
+    }
+    .follower-item {
+      padding: 6px 0;
+      border-bottom: 1px solid #90caf9;
+    }
+    .follower-item:last-child {
+      border-bottom: none;
+    }
+    .apps-badge {
+      background-color: #1976d2;
+      color: white;
+      padding: 2px 8px;
+      margin-left: 5px;
+      border-radius: 12px;
+      font-size: 0.85em;
+      display: inline-block;
+    }
+    .toggle-btn {
+      margin-top: 8px;
+      background-color: #0288d1;
+      font-size: 0.9em;
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: none;
+      cursor: pointer;
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+    .toggle-btn:hover {
+      background-color: #01579b;
+    }
+    /* Scroll for follower apps */
+    #followerApps {
+      width: 300px;
+      font-size: 0.9em;
+    }
+
+    /* إخفاء الأقسام بالافتراض */
+    section {
+      display: none;
+      margin-top: 20px;
+    }
+
+    /* أزرار التبديل */
+    #menuButtons button {
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="menuButtons">
+    <button onclick="showSection('addUserSection')">➕ إضافة مستخدم جديد</button>
+    <button onclick="showSection('usersListSection')">📋 عرض المستخدمين</button>
+    <button onclick="showSection('addFollowerSection')">➕ إضافة تابع</button>
+  </div>
+
+  <section id="addUserSection">
+    <h2>➕ إضافة مستخدم جديد</h2>
+    <form id="userForm">
+      <label>الاسم: <input type="text" id="name" required /></label>
+      <label>البريد الإلكتروني: <input type="email" id="email" required /></label>
+      <label>اسم المستخدم: <input type="text" id="username" required /></label>
+      <label>كلمة المرور: <input type="password" id="password" required /></label>
+      <label>الدور:
+        <select id="role">
+          <option value="user">مستخدم</option>
+          <option value="admin">أدمن</option>
+        </select>
+      </label>
+      <label>التطبيقات المتاحة للمستخدم (اختياري):</label>
+      <select id="userApps" multiple style="width: 320px; height: 100px;"></select>
+      <button type="submit">إضافة المستخدم</button>
+    </form>
+  </section>
+
+  <section id="usersListSection">
+    <h2>📋 المستخدمون الحاليون</h2>
+    <div id="usersContainer"></div>
+  </section>
+
+  <section id="addFollowerSection">
+    <h3>➕ إضافة تابع لمستخدم</h3>
+    <form id="followerForm">
+      <label>اختيار المستخدم: 
+        <select id="selectUser" required style="width: 320px;"></select>
+      </label>
+      <label>اسم التابع: <input type="text" id="followerName" required /></label>
+      <label>كلمة مرور التابع: <input type="password" id="followerPassword" required /></label>
+      <label>التطبيقات (AppID مفصولة بفواصل): <input type="text" id="followerApps" placeholder="مثال: 101,102" /></label>
+      <button type="submit">إضافة تابع</button>
+    </form>
+  </section>
+
+  <p id="result"></p>
+
+<script>
+  const apiBaseUsers = "https://script.google.com/macros/s/AKfycbzOe7CEA2qPFdkcWw6BdMsoU3BgU36ZT54wEqEfZlKY986yktRqb5ZBGeIWoVI39ijoKQ/exec";
+  const apiBaseApps = "https://script.google.com/macros/s/AKfycbzOe7CEA2qPFdkcWw6BdMsoU3BgU36ZT54wEqEfZlKY986yktRqb5ZBGeIWoVI39ijoKQ/exec";
+
+  const result = document.getElementById('result');
+  const usersContainer = document.getElementById('usersContainer');
+  const selectUser = document.getElementById('selectUser');
+  const userAppsSelect = document.getElementById('userApps');
+
+  // إظهار قسم وإخفاء البقية
+  function showSection(sectionId) {
+    const sections = document.querySelectorAll('section');
+    sections.forEach(sec => {
+      sec.style.display = (sec.id === sectionId) ? 'block' : 'none';
+    });
+    result.style.display = 'none'; // إخفاء النتيجة عند تبديل الأقسام
+  }
+
+  // تحميل التطبيقات
+  async function loadApps() {
+    try {
+      const res = await fetch(`${apiBaseApps}?resource=Apps&method=get`);
+      const data = await res.json();
+      if (data.success && data.apps) {
+        appsMap = {};
+        userAppsSelect.innerHTML = '';
+        data.apps.forEach(app => {
+          appsMap[app.AppID] = app.Name_EN || app.AppID;
+          const option = document.createElement('option');
+          option.value = app.AppID;
+          option.textContent = `${app.Name_EN} (${app.AppID})`;
+          userAppsSelect.appendChild(option);
+        });
+      }
+    } catch (e) {
+      console.error("خطأ في تحميل التطبيقات", e);
+    }
+  }
+
+  // تحويل تطبيقات تابع إلى أسماء إنجليزية
+  function convertAppsToEnglishNames(appsString) {
+    if (!appsString) return '';
+    const appsArr = appsString.split(',').map(s => s.trim());
+    const appsEnglishNames = appsArr.map(appID => appsMap[appID] || appID);
+    return appsEnglishNames.join(', ');
+  }
+
+  // تحميل المستخدمين
+  async function loadUsers() {
+    try {
+      const res = await fetch(`${apiBaseUsers}?resource=users&method=get`);
+      const data = await res.json();
+      if (data.success) {
+        usersContainer.innerHTML = '';
+        selectUser.innerHTML = '';
+        data.users.forEach(user => {
+          const optionSelect = document.createElement('option');
+          optionSelect.value = user.username;
+          optionSelect.textContent = `${user.name} (${user.username})`;
+          selectUser.appendChild(optionSelect);
+
+          const userDiv = document.createElement('div');
+          userDiv.className = 'user-item';
+          userDiv.innerHTML = `
+            <strong>👤 ${user.name} (${user.username})</strong> - الدور: ${user.role === 'admin' ? '🛡️ أدمن' : '👥 مستخدم'}
+            <br />
+            <button class="toggle-btn">عرض التابعين 👁️</button>
+            <div class="followers-list"></div>
+          `;
+
+          const toggleBtn = userDiv.querySelector('.toggle-btn');
+          const followersListDiv = userDiv.querySelector('.followers-list');
+
+          toggleBtn.addEventListener('click', async () => {
+            if (followersListDiv.style.display === 'block') {
+              followersListDiv.style.display = 'none';
+              toggleBtn.textContent = 'عرض التابعين 👁️';
+            } else {
+              const userDataResp = await fetch(`${apiBaseUsers}?resource=users&method=getUser&username=${encodeURIComponent(user.username)}`);
+              const userData = await userDataResp.json();
+              if (userData.success) {
+                followersListDiv.innerHTML = '';
+                const followersFields = ['Followers1', 'Followers2', 'Followers3', 'Followers4', 'Followers5'];
+                const passwordFields = ['Followers1_password', 'Followers2_password', 'Followers3_password', 'Followers4_password', 'Followers5_password'];
+                const appsFields = ['Followers1_apps', 'Followers2_apps', 'Followers3_apps', 'Followers4_apps', 'Followers5_apps'];
+
+                let anyFollowers = false;
+                for (let i = 0; i < followersFields.length; i++) {
+                  if (userData.user[followersFields[i]] && userData.user[followersFields[i]].trim() !== '') {
+                    anyFollowers = true;
+                    const followerName = userData.user[followersFields[i]];
+                    const followerAppsIDs = userData.user[appsFields[i]] || '';
+                    const appsEnglishNames = convertAppsToEnglishNames(followerAppsIDs);
+
+                    const followerDiv = document.createElement('div');
+                    followerDiv.className = 'follower-item';
+                    followerDiv.innerHTML = `
+                      🧑‍💼 تابع: <strong>${followerName}</strong><br/>
+                      🔑 كلمة المرور: <em>محفوظة</em><br/>
+                      📱 التطبيقات: <span class="apps-badge">${appsEnglishNames || 'لا توجد تطبيقات'}</span>
+                    `;
+                    followersListDiv.appendChild(followerDiv);
+                  }
+                }
+                if (!anyFollowers) {
+                  followersListDiv.textContent = 'لا يوجد تابعين لهذا المستخدم.';
+                }
+                followersListDiv.style.display = 'block';
+                toggleBtn.textContent = 'إخفاء التابعين 🙈';
+              } else {
+                followersListDiv.textContent = 'خطأ في جلب بيانات التابعين.';
+                followersListDiv.style.display = 'block';
+              }
+            }
+          });
+
+          usersContainer.appendChild(userDiv);
+        });
+      } else {
+        showResult("خطأ في جلب المستخدمين: " + data.message, 'red');
+      }
+    } catch (e) {
+      showResult("خطأ في الاتصال بالخادم", 'red');
+      console.error(e);
+    }
+  }
+
+  // دالة عرض رسالة
+  function showResult(message, color='black') {
+    result.style.color = color;
+    result.textContent = message;
+    result.style.display = 'block';
+  }
+
+  // إضافة مستخدم جديد
+  document.getElementById('userForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const role = document.getElementById('role').value;
+    const selectedApps = Array.from(userAppsSelect.selectedOptions).map(opt => opt.value);
+
+    if (!name || !email || !username || !password) {
+      showResult("يرجى تعبئة جميع الحقول المطلوبة", 'red');
+      return;
+    }
+
+    const postData = {
+      resource: "users",
+      method: "add",
+      name,
+      email,
+      username,
+      password,
+      role,
+      apps: selectedApps.join(',')
+    };
+
+    try {
+      const res = await fetch(apiBaseUsers, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(postData)
+      });
+      const data = await res.json();
+      if (data.success) {
+        showResult("تم إضافة المستخدم بنجاح", 'green');
+        e.target.reset();
+        await loadUsers();
+      } else {
+        showResult("فشل في إضافة المستخدم: " + (data.message || ''), 'red');
+      }
+    } catch (error) {
+      showResult("حدث خطأ أثناء إضافة المستخدم", 'red');
+      console.error(error);
+    }
+  });
+
+  // إضافة تابع
+  document.getElementById('followerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const username = selectUser.value;
+    const followerName = document.getElementById('followerName').value.trim();
+    const followerPassword = document.getElementById('followerPassword').value;
+    const followerApps = document.getElementById('followerApps').value.trim();
+
+    if (!username || !followerName || !followerPassword) {
+      showResult("يرجى تعبئة جميع الحقول المطلوبة للتابع", 'red');
+      return;
+    }
+
+    // البيانات لتحديث التابع، حسب أول خانة فارغة
+    try {
+      // أولاً جلب بيانات المستخدم
+      const userResp = await fetch(`${apiBaseUsers}?resource=users&method=getUser&username=${encodeURIComponent(username)}`);
+      const userData = await userResp.json();
+
+      if (!userData.success) {
+        showResult("المستخدم غير موجود", 'red');
+        return;
+      }
+
+      const user = userData.user;
+      let followerIndex = -1;
+      for (let i = 1; i <= 5; i++) {
+        if (!user[`Followers${i}`] || user[`Followers${i}`].trim() === '') {
+          followerIndex = i;
+          break;
+        }
+      }
+
+      if (followerIndex === -1) {
+        showResult("عدد التابعين وصل للحد الأقصى (5)", 'red');
+        return;
+      }
+
+      // تجهيز بيانات التحديث
+      const updateData = {
+        resource: "users",
+        method: "update",
+        username: username,
+        [`Followers${followerIndex}`]: followerName,
+        [`Followers${followerIndex}_password`]: followerPassword,
+        [`Followers${followerIndex}_apps`]: followerApps
+      };
+
+      const updateRes = await fetch(apiBaseUsers, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData)
+      });
+
+      const updateResult = await updateRes.json();
+
+      if (updateResult.success) {
+        showResult("تم إضافة التابع بنجاح", 'green');
+        e.target.reset();
+        await loadUsers();
+      } else {
+        showResult("فشل في إضافة التابع: " + (updateResult.message || ''), 'red');
+      }
+    } catch (error) {
+      showResult("حدث خطأ أثناء إضافة التابع", 'red');
+      console.error(error);
+    }
+  });
+
+  // تحميل التطبيقات والمستخدمين عند فتح الصفحة
+  let appsMap = {};
+  async function initialize() {
+    await loadApps();
+    await loadUsers();
+    showSection('addUserSection'); // إظهار قسم إضافة مستخدم تلقائياً عند البداية
+  }
+  initialize();
+
+</script>
+
+</body>
+</html>

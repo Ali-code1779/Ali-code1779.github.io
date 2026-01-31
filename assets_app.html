@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>📊 نظام إدارة الأصول الثابتة | Fixed Assets Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root {
+  --primary: #2563eb;
+  --primary-light: #dbeafe;
+  --primary-dark: #1d4ed8;
+  --bg: #f3f4f6;
+  --card-bg: #ffffff;
+  --border: #e5e7eb;
+  --text-main: #111827;
+  --text-muted: #6b7280;
+  --danger: #dc2626;
+  --success: #16a34a;
+  --warning: #f59e0b;
+  --shadow-soft: 0 10px 25px rgba(15,23,42,0.08);
+}
+
+* {
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at top, #eff6ff 0, #f9fafb 45%, #e5e7eb 100%);
+  color: var(--text-main);
+}
+
+.app-shell {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.app-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.app-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.app-title-icon {
+  font-size: 32px;
+}
+
+.app-title-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.app-title-text h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.app-title-text span {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.lang-toggle {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.lang-toggle button {
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.lang-toggle button.active {
+  background: var(--primary);
+  border-color: var(--primary-dark);
+  color: #fff;
+}
+
+.lang-toggle button:hover {
+  box-shadow: 0 2px 8px rgba(37,99,235,0.2);
+}
+
+.main-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Sidebar */
+.sidebar {
+  background: rgba(255,255,255,0.9);
+  border-radius: 18px;
+  padding: 12px;
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(12px);
+}
+
+.nav-section-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 4px 10px 8px;
+}
+
+.nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.nav-item {
+  margin-bottom: 4px;
+}
+
+.nav-link {
+  border-radius: 12px;
+  border: 1px solid transparent;
+  padding: 8px 10px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-main);
+  cursor: pointer;
+  background: transparent;
+  width: 100%;
+  text-align: start;
+  transition: all 0.15s;
+}
+
+.nav-link span.icon {
+  font-size: 18px;
+}
+
+.nav-link:hover {
+  background: var(--primary-light);
+  border-color: var(--primary);
+}
+
+.nav-link.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary-dark);
+}
+
+/* Content */
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.card {
+  background: rgba(255,255,255,0.96);
+  border-radius: 18px;
+  padding: 14px 16px;
+  box-shadow: var(--shadow-soft);
+  border: 1px solid rgba(148,163,184,0.15);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.card-header h2 {
+  margin: 0;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-header h2 span.icon {
+  font-size: 20px;
+}
+
+.card-header .subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Dashboard Stats */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.stat-card {
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #eff6ff, #ffffff);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.stat-tag {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-tag.success {
+  background: rgba(34,197,94,0.1);
+  color: var(--success);
+}
+
+.stat-tag.warning {
+  background: rgba(234,179,8,0.1);
+  color: var(--warning);
+}
+
+.stat-tag.danger {
+  background: rgba(248,113,113,0.15);
+  color: var(--danger);
+}
+
+/* Forms */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px 12px;
+  margin-bottom: 10px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-field label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  padding: 7px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  background: #f9fafb;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px rgba(37,99,235,0.15);
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+.btn {
+  border-radius: 999px;
+  padding: 7px 12px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+  box-shadow: 0 4px 12px rgba(37,99,235,0.35);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--text-main);
+  border: 1px solid var(--border);
+}
+
+.btn-outline:hover {
+  background: #f9fafb;
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: #b91c1c;
+}
+
+/* Table */
+.table-wrapper {
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  max-height: 360px;
+  background: #fff;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: #f9fafb;
+  align-items: center;
+  gap: 8px;
+}
+
+.table-header input {
+  flex: 1;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table th,
+.table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.table th {
+  background: #f3f4f6;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-active {
+  background: rgba(34,197,94,0.08);
+  color: var(--success);
+}
+
+.badge-inactive {
+  background: rgba(148,163,184,0.15);
+  color: #4b5563;
+}
+
+.badge-missing {
+  background: rgba(248,113,113,0.12);
+  color: var(--danger);
+}
+
+/* Alerts */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  left: auto;
+  background: #0f172a;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 10px 25px rgba(15,23,42,0.4);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px);
+  transition: all 0.25s ease;
+  z-index: 9999;
+}
+
+.toast.show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+/* Sections visibility */
+.section {
+  display: none;
+}
+
+.section.active {
+  display: block;
+}
+
+/* Direction */
+html[dir="rtl"] body {
+  direction: rtl;
+}
+
+html[dir="ltr"] body {
+  direction: ltr;
+}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <header class="app-header">
+    <div class="app-title">
+      <div class="app-title-icon">📊</div>
+      <div class="app-title-text">
+        <h1 id="title-main">نظام إدارة الأصول الثابتة</h1>
+        <span id="title-sub">إدارة السجل والجرد والإهلاك والتقارير في واجهة واحدة</span>
+      </div>
+    </div>
+    <div class="lang-toggle">
+      <span id="lang-label">اللغة:</span>
+      <button id="btn-ar" class="active"><span>🇸🇦</span><span>العربية</span></button>
+      <button id="btn-en"><span>🇺🇸</span><span>English</span></button>
+    </div>
+  </header>
+
+  <main class="main-layout">
+    <aside class="sidebar">
+      <div class="nav-section-title" id="nav-main-title">الأقسام الرئيسية</div>
+      <ul class="nav-list">
+        <li class="nav-item">
+          <button class="nav-link active" data-section="dashboard">
+            <span class="icon">📊</span><span id="nav-dashboard">لوحة التحكم</span>
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-section="assets">
+            <span class="icon">🏷️</span><span id="nav-assets">إدارة الأصول</span>
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-section="inventory">
+            <span class="icon">🧾</span><span id="nav-inventory">جرد الأصول</span>
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-section="depreciation">
+            <span class="icon">⚙️</span><span id="nav-depreciation">الإهلاك</span>
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-section="reports">
+            <span class="icon">📄</span><span id="nav-reports">التقارير</span>
+          </button>
+        </li>
+      </ul>
+    </aside>
+
+    <section class="content">
+      <!-- Dashboard -->
+      <section id="section-dashboard" class="section active">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2><span class="icon">📊</span><span id="dash-title">نظرة عامة على الأصول</span></h2>
+              <div class="subtitle" id="dash-subtitle">لمحة سريعة عن إجمالي الأصول وحالتها</div>
+            </div>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-label" id="dash-total-label">إجمالي عدد الأصول</div>
+              <div class="stat-value" id="stat-total-assets">0</div>
+              <div class="stat-tag success">
+                <span>✅</span><span id="dash-total-tag">أصول مسجلة في النظام</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label" id="dash-active-label">أصول فعّالة</div>
+              <div class="stat-value" id="stat-active-assets">0</div>
+              <div class="stat-tag success">
+                <span>📌</span><span id="dash-active-tag">ما زالت قيد الاستخدام</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label" id="dash-inactive-label">أصول غير عاملة</div>
+              <div class="stat-value" id="stat-inactive-assets">0</div>
+              <div class="stat-tag warning">
+                <span>⚠️</span><span id="dash-inactive-tag">بحاجة لمراجعة</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label" id="dash-missing-label">أصول مفقودة/جرد</div>
+              <div class="stat-value" id="stat-missing-assets">0</div>
+              <div class="stat-tag danger">
+                <span>🚨</span><span id="dash-missing-tag">عناصر بها ملاحظات جرد</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Assets Management -->
+      <section id="section-assets" class="section">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2><span class="icon">🏷️</span><span id="assets-title">إضافة / تعديل أصل</span></h2>
+              <div class="subtitle" id="assets-subtitle">إدارة بيانات الأصول الثابتة</div>
+            </div>
+          </div>
+
+          <form id="asset-form">
+            <input type="hidden" id="asset-row" value="">
+            <div class="form-grid">
+              <div class="form-field">
+                <label for="asset-id" id="label-asset-id">رقم الأصل (إن ترك فارغًا سيتم توليده)</label>
+                <input id="asset-id" type="text" placeholder="">
+              </div>
+              <div class="form-field">
+                <label for="asset-name" id="label-asset-name">اسم الأصل</label>
+                <input id="asset-name" type="text" required>
+              </div>
+              <div class="form-field">
+                <label for="asset-category" id="label-asset-category">التصنيف</label>
+                <input id="asset-category" type="text">
+              </div>
+              <div class="form-field">
+                <label for="asset-location" id="label-asset-location">الموقع</label>
+                <input id="asset-location" type="text">
+              </div>
+              <div class="form-field">
+                <label for="asset-purchase-date" id="label-asset-purchase-date">تاريخ الشراء</label>
+                <input id="asset-purchase-date" type="date">
+              </div>
+              <div class="form-field">
+                <label for="asset-cost" id="label-asset-cost">تكلفة الأصل</label>
+                <input id="asset-cost" type="number" step="0.01">
+              </div>
+              <div class="form-field">
+                <label for="asset-life" id="label-asset-life">العمر الإنتاجي (سنوات)</label>
+                <input id="asset-life" type="number" step="1">
+              </div>
+              <div class="form-field">
+                <label for="asset-salvage" id="label-asset-salvage">قيمة الخردة</label>
+                <input id="asset-salvage" type="number" step="0.01">
+              </div>
+              <div class="form-field">
+                <label for="asset-method" id="label-asset-method">طريقة الإهلاك</label>
+                <select id="asset-method">
+                  <option value="Straight-Line" selected>Straight-Line</option>
+                  <option value="Declining-Balance">Declining Balance</option>
+                  <option value="Units-of-Production">Units of Production</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label for="asset-current" id="label-asset-current">القيمة الحالية (اختياري)</label>
+                <input id="asset-current" type="number" step="0.01">
+              </div>
+              <div class="form-field">
+                <label for="asset-status" id="label-asset-status">حالة الأصل</label>
+                <select id="asset-status">
+                  <option value="Active" selected>Active</option>
+                  <option value="Inactive">Inactive</option>
+                  <option value="Missing">Missing</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="button-row">
+              <button type="button" class="btn btn-outline" id="btn-reset-form">🔄 <span id="btn-reset-text">تفريغ النموذج</span></button>
+              <button type="submit" class="btn btn-primary" id="btn-save">
+                💾 <span id="btn-save-text">حفظ الأصل</span>
+              </button>
+              <button type="button" class="btn btn-danger" id="btn-delete" style="display:none;">
+                🗑️ <span id="btn-delete-text">حذف الأصل</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2><span class="icon">📋</span><span id="assets-list-title">سجل الأصول</span></h2>
+              <div class="subtitle" id="assets-list-subtitle">ابحث وحرر الأصول المسجلة</div>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <div class="table-header">
+              <input id="asset-search" type="text" placeholder="🔍 بحث عن أصل بالاسم أو الرقم...">
+              <span id="asset-count-label" style="font-size:12px;color:var(--text-muted);">0 أصل</span>
+            </div>
+            <table class="table" id="assets-table">
+              <thead>
+                <tr>
+                  <th id="th-id">رقم الأصل</th>
+                  <th id="th-name">الاسم</th>
+                  <th id="th-category">التصنيف</th>
+                  <th id="th-location">الموقع</th>
+                  <th id="th-status">الحالة</th>
+                  <th id="th-actions">إجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="assets-tbody">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Inventory -->
+      <section id="section-inventory" class="section">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2><span class="icon">🧾</span><span id="inv-title">جرد الأصول الفعلي</span></h2>
+              <div class="subtitle" id="inv-subtitle">مقارنة الأصول المسجلة بالموجود فعليًا</div>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label id="inv-filter-location-label">تصفية حسب الموقع</label>
+              <input id="inv-filter-location" type="text">
+            </div>
+            <div class="form-field">
+              <label id="inv-note-label">ملاحظة الجرد العامة</label>
+              <textarea id="inv-note" rows="2"></textarea>
+            </div>
+          </div>
+
+          <div class="button-row">
+            <button class="btn btn-outline" id="btn-refresh-inv">🔄 <span id="inv-refresh-text">تحديث من السجل</span></button>
+            <button class="btn btn-primary" id="btn-generate-inv">🧾 <span id="inv-generate-text">توليد تقرير الجرد</span></button>
+          </div>
+
+          <div class="table-wrapper" style="margin-top:10px;">
+            <div class="table-header">
+              <span id="inv-table-label" style="font-size:12px;color:var(--text-muted);">ملخص الأصول حسب حالة الجرد</span>
+            </div>
+            <table class="table" id="inv-table">
+              <thead>
+                <tr>
+                  <th id="inv-th-location">الموقع</th>
+                  <th id="inv-th-total">إجمالي الأصول</th>
+                  <th id="inv-th-active">فعّالة</th>
+                  <th id="inv-th-missing">مفقودة</th>
+                </tr>
+              </thead>
+              <tbody id="inv-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Depreciation -->
+      <section id="section-depreciation" class="section">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2><span class="icon">⚙️</span><span id="dep-title">حساب الإهلاك</span></h2>
+              <div class="subtitle" id="dep-subtitle">تطبيق طرق الإهلاك المختلفة على الأصول</div>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label id="dep-method-label">طريقة الإهلاك الافتراضية</label>
+              <select id="dep-method-global">
+                <option value="Straight-Line" selected>Straight-Line</option>
+                <option value="Declining-Balance">Declining Balance (Double)</option>
+                <option value="Units-of-Production">Units of Production</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label id="dep-year-label">عدد السنوات لعرض الجدول</label>
+              <input id="dep-years" type="number" min="1" value="5">
+            </div>
+          </div>
+
+          <div class="button-row">
+            <button class="btn btn-primary" id="btn-calc-dep">📊 <span id="dep-calc-text">حساب جداول الإهلاك</span></button>
+          </div>
+
+          <div class="table-wrapper" style="margin-top:10px;">
+            <div class="table-header">
+              <span id="dep-table-label" style="font-size:12px;color:var(--text-muted);">نتائج الإهلاك التقريبية للأصول المسجلة</span>
+            </div>
+            <table class="table" id="dep-table">
+              <thead>
+                <tr>
+                  <th id="dep-th-asset">الأصل</th>
+                  <th id="dep-th-method">الطريقة</th>
+                  <th id="dep-th-year">السنوات</th>
+                  <th id="dep-th-annual">إهلاك سنوي تقريبي</th>
+                  <th id="dep-th-book">قيمة دفترية بعد الفترة</th>
+                </tr>
+              </thead>
+              <tbody id="dep-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Reports -->
+      <section id="section-reports" class="section">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2><span class="icon">📄</span><span id="rep-title">تقارير الأصول</span></h2>
+              <div class="subtitle" id="rep-subtitle">توليد تقارير جاهزة للطباعة أو التصدير</div>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label id="rep-type-label">نوع التقرير</label>
+              <select id="rep-type">
+                <option value="by-location">الأصول حسب الموقع</option>
+                <option value="by-status">الأصول حسب الحالة</option>
+                <option value="by-method">الأصول حسب طريقة الإهلاك</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label id="rep-filter-label">تصفية إضافية (اختياري)</label>
+              <input id="rep-filter" type="text">
+            </div>
+          </div>
+
+          <div class="button-row">
+            <button class="btn btn-primary" id="btn-gen-report">📄 <span id="rep-gen-text">توليد التقرير</span></button>
+            <button class="btn btn-outline" id="btn-print-report">🖨️ <span id="rep-print-text">طباعة / PDF</span></button>
+          </div>
+
+          <div class="table-wrapper" style="margin-top:10px;">
+            <div class="table-header">
+              <span id="rep-table-label" style="font-size:12px;color:var(--text-muted);">نتائج التقرير الحالي</span>
+            </div>
+            <table class="table" id="rep-table">
+              <thead>
+                <tr>
+                  <th id="rep-th-col1">المجموعة</th>
+                  <th id="rep-th-col2">عدد الأصول</th>
+                  <th id="rep-th-col3">مجموع التكلفة</th>
+                  <th id="rep-th-col4">مجموع القيمة الحالية</th>
+                </tr>
+              </thead>
+              <tbody id="rep-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+</div>
+
+<div id="toast" class="toast">
+  <span id="toast-icon">✅</span><span id="toast-text">تم الحفظ بنجاح</span>
+</div>
+
+<script>
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzpngcC_pKfjbtPp42ATpLPVF3Yx10bA6fQscV615Bc6JpZLE00MJm1MVOWu0JeKxB1uA/exec";
+
+let currentLang = 'ar';
+let assets = [];
+
+const i18n = {
+  ar: {
+    titleMain: "نظام إدارة الأصول الثابتة",
+    titleSub: "إدارة السجل والجرد والإهلاك والتقارير في واجهة واحدة",
+    langLabel: "اللغة:",
+    navMainTitle: "الأقسام الرئيسية",
+    navDashboard: "لوحة التحكم",
+    navAssets: "إدارة الأصول",
+    navInventory: "جرد الأصول",
+    navDepreciation: "الإهلاك",
+    navReports: "التقارير",
+    dashTitle: "نظرة عامة على الأصول",
+    dashSubtitle: "لمحة سريعة عن إجمالي الأصول وحالتها",
+    dashTotalLabel: "إجمالي عدد الأصول",
+    dashTotalTag: "أصول مسجلة في النظام",
+    dashActiveLabel: "أصول فعّالة",
+    dashActiveTag: "ما زالت قيد الاستخدام",
+    dashInactiveLabel: "أصول غير عاملة",
+    dashInactiveTag: "بحاجة لمراجعة",
+    dashMissingLabel: "أصول مفقودة/جرد",
+    dashMissingTag: "عناصر بها ملاحظات جرد",
+    assetsTitle: "إضافة / تعديل أصل",
+    assetsSubtitle: "إدارة بيانات الأصول الثابتة",
+    labelAssetId: "رقم الأصل (إن ترك فارغًا سيتم توليده)",
+    labelAssetName: "اسم الأصل",
+    labelAssetCategory: "التصنيف",
+    labelAssetLocation: "الموقع",
+    labelAssetPurchaseDate: "تاريخ الشراء",
+    labelAssetCost: "تكلفة الأصل",
+    labelAssetLife: "العمر الإنتاجي (سنوات)",
+    labelAssetSalvage: "قيمة الخردة",
+    labelAssetMethod: "طريقة الإهلاك",
+    labelAssetCurrent: "القيمة الحالية (اختياري)",
+    labelAssetStatus: "حالة الأصل",
+    btnReset: "تفريغ النموذج",
+    btnSave: "حفظ الأصل",
+    btnDelete: "حذف الأصل",
+    assetsListTitle: "سجل الأصول",
+    assetsListSubtitle: "ابحث وحرر الأصول المسجلة",
+    assetsSearchPlaceholder: "🔍 بحث عن أصل بالاسم أو الرقم...",
+    thId: "رقم الأصل",
+    thName: "الاسم",
+    thCategory: "التصنيف",
+    thLocation: "الموقع",
+    thStatus: "الحالة",
+    thActions: "إجراءات",
+    statusActive: "فعّال",
+    statusInactive: "غير عامل",
+    statusMissing: "مفقود",
+    invTitle: "جرد الأصول الفعلي",
+    invSubtitle: "مقارنة الأصول المسجلة بالموجود فعليًا",
+    invFilterLocationLabel: "تصفية حسب الموقع",
+    invNoteLabel: "ملاحظة الجرد العامة",
+    invRefreshText: "تحديث من السجل",
+    invGenerateText: "توليد تقرير الجرد",
+    invTableLabel: "ملخص الأصول حسب حالة الجرد",
+    invThLocation: "الموقع",
+    invThTotal: "إجمالي الأصول",
+    invThActive: "فعّالة",
+    invThMissing: "مفقودة",
+    depTitle: "حساب الإهلاك",
+    depSubtitle: "تطبيق طرق الإهلاك المختلفة على الأصول",
+    depMethodLabel: "طريقة الإهلاك الافتراضية",
+    depYearLabel: "عدد السنوات لعرض الجدول",
+    depCalcText: "حساب جداول الإهلاك",
+    depTableLabel: "نتائج الإهلاك التقريبية للأصول المسجلة",
+    depThAsset: "الأصل",
+    depThMethod: "الطريقة",
+    depThYear: "السنوات",
+    depThAnnual: "إهلاك سنوي تقريبي",
+    depThBook: "قيمة دفترية بعد الفترة",
+    repTitle: "تقارير الأصول",
+    repSubtitle: "توليد تقارير جاهزة للطباعة أو التصدير",
+    repTypeLabel: "نوع التقرير",
+    repFilterLabel: "تصفية إضافية (اختياري)",
+    repGenText: "توليد التقرير",
+    repPrintText: "طباعة / PDF",
+    repTableLabel: "نتائج التقرير الحالي",
+    repThCol1: "المجموعة",
+    repThCol2: "عدد الأصول",
+    repThCol3: "مجموع التكلفة",
+    repThCol4: "مجموع القيمة الحالية",
+    reportByLocation: "الأصول حسب الموقع",
+    reportByStatus: "الأصول حسب الحالة",
+    reportByMethod: "الأصول حسب طريقة الإهلاك",
+    toastSaved: "تم الحفظ بنجاح",
+    toastDeleted: "تم حذف الأصل",
+    toastError: "حدث خطأ أثناء الاتصال بالخادم",
+    countAssets: "أصل",
+    printTitle: "تقرير الأصول",
+  },
+  en: {
+    titleMain: "Fixed Assets Management System",
+    titleSub: "Manage register, inventory, depreciation and reports in one interface",
+    langLabel: "Language:",
+    navMainTitle: "Main Sections",
+    navDashboard: "Dashboard",
+    navAssets: "Assets",
+    navInventory: "Inventory",
+    navDepreciation: "Depreciation",
+    navReports: "Reports",
+    dashTitle: "Assets Overview",
+    dashSubtitle: "Quick view of total assets and their status",
+    dashTotalLabel: "Total Assets",
+    dashTotalTag: "Assets registered in the system",
+    dashActiveLabel: "Active Assets",
+    dashActiveTag: "Still in use",
+    dashInactiveLabel: "Inactive Assets",
+    dashInactiveTag: "Need review",
+    dashMissingLabel: "Missing / Inventory",
+    dashMissingTag: "Items with inventory notes",
+    assetsTitle: "Add / Edit Asset",
+    assetsSubtitle: "Manage fixed assets information",
+    labelAssetId: "Asset ID (leave empty to auto-generate)",
+    labelAssetName: "Asset Name",
+    labelAssetCategory: "Category",
+    labelAssetLocation: "Location",
+    labelAssetPurchaseDate: "Purchase Date",
+    labelAssetCost: "Cost",
+    labelAssetLife: "Useful Life (years)",
+    labelAssetSalvage: "Salvage Value",
+    labelAssetMethod: "Depreciation Method",
+    labelAssetCurrent: "Current Value (optional)",
+    labelAssetStatus: "Asset Status",
+    btnReset: "Clear Form",
+    btnSave: "Save Asset",
+    btnDelete: "Delete Asset",
+    assetsListTitle: "Assets Register",
+    assetsListSubtitle: "Search and edit registered assets",
+    assetsSearchPlaceholder: "🔍 Search asset by ID or name...",
+    thId: "Asset ID",
+    thName: "Name",
+    thCategory: "Category",
+    thLocation: "Location",
+    thStatus: "Status",
+    thActions: "Actions",
+    statusActive: "Active",
+    statusInactive: "Inactive",
+    statusMissing: "Missing",
+    invTitle: "Physical Inventory",
+    invSubtitle: "Compare registered assets with actual",
+    invFilterLocationLabel: "Filter by location",
+    invNoteLabel: "Global inventory note",
+    invRefreshText: "Refresh from register",
+    invGenerateText: "Generate inventory report",
+    invTableLabel: "Assets summary by inventory status",
+    invThLocation: "Location",
+    invThTotal: "Total",
+    invThActive: "Active",
+    invThMissing: "Missing",
+    depTitle: "Depreciation Calculation",
+    depSubtitle: "Apply different depreciation methods to assets",
+    depMethodLabel: "Default depreciation method",
+    depYearLabel: "Years to display",
+    depCalcText: "Calculate depreciation tables",
+    depTableLabel: "Approximate depreciation for registered assets",
+    depThAsset: "Asset",
+    depThMethod: "Method",
+    depThYear: "Years",
+    depThAnnual: "Annual Depreciation",
+    depThBook: "Book Value after period",
+    repTitle: "Assets Reports",
+    repSubtitle: "Generate printable/exportable reports",
+    repTypeLabel: "Report type",
+    repFilterLabel: "Additional filter (optional)",
+    repGenText: "Generate report",
+    repPrintText: "Print / PDF",
+    repTableLabel: "Current report results",
+    repThCol1: "Group",
+    repThCol2: "Assets Count",
+    repThCol3: "Total Cost",
+    repThCol4: "Total Current Value",
+    reportByLocation: "Assets by location",
+    reportByStatus: "Assets by status",
+    reportByMethod: "Assets by depreciation method",
+    toastSaved: "Saved successfully",
+    toastDeleted: "Asset deleted",
+    toastError: "Error while contacting server",
+    countAssets: "assets",
+    printTitle: "Assets Report",
+  }
+};
+
+function applyLang(lang) {
+  currentLang = lang;
+  const t = i18n[lang];
+
+  document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+  document.getElementById('title-main').textContent = t.titleMain;
+  document.getElementById('title-sub').textContent = t.titleSub;
+  document.getElementById('lang-label').textContent = t.langLabel;
+  document.getElementById('nav-main-title').textContent = t.navMainTitle;
+  document.getElementById('nav-dashboard').textContent = t.navDashboard;
+  document.getElementById('nav-assets').textContent = t.navAssets;
+  document.getElementById('nav-inventory').textContent = t.navInventory;
+  document.getElementById('nav-depreciation').textContent = t.navDepreciation;
+  document.getElementById('nav-reports').textContent = t.navReports;
+
+  document.getElementById('dash-title').textContent = t.dashTitle;
+  document.getElementById('dash-subtitle').textContent = t.dashSubtitle;
+  document.getElementById('dash-total-label').textContent = t.dashTotalLabel;
+  document.getElementById('dash-total-tag').textContent = t.dashTotalTag;
+  document.getElementById('dash-active-label').textContent = t.dashActiveLabel;
+  document.getElementById('dash-active-tag').textContent = t.dashActiveTag;
+  document.getElementById('dash-inactive-label').textContent = t.dashInactiveLabel;
+  document.getElementById('dash-inactive-tag').textContent = t.dashInactiveTag;
+  document.getElementById('dash-missing-label').textContent = t.dashMissingLabel;
+  document.getElementById('dash-missing-tag').textContent = t.dashMissingTag;
+
+  document.getElementById('assets-title').textContent = t.assetsTitle;
+  document.getElementById('assets-subtitle').textContent = t.assetsSubtitle;
+  document.getElementById('label-asset-id').textContent = t.labelAssetId;
+  document.getElementById('label-asset-name').textContent = t.labelAssetName;
+  document.getElementById('label-asset-category').textContent = t.labelAssetCategory;
+  document.getElementById('label-asset-location').textContent = t.labelAssetLocation;
+  document.getElementById('label-asset-purchase-date').textContent = t.labelAssetPurchaseDate;
+  document.getElementById('label-asset-cost').textContent = t.labelAssetCost;
+  document.getElementById('label-asset-life').textContent = t.labelAssetLife;
+  document.getElementById('label-asset-salvage').textContent = t.labelAssetSalvage;
+  document.getElementById('label-asset-method').textContent = t.labelAssetMethod;
+  document.getElementById('label-asset-current').textContent = t.labelAssetCurrent;
+  document.getElementById('label-asset-status').textContent = t.labelAssetStatus;
+  document.getElementById('btn-reset-text').textContent = t.btnReset;
+  document.getElementById('btn-save-text').textContent = t.btnSave;
+  document.getElementById('btn-delete-text').textContent = t.btnDelete;
+
+  document.getElementById('assets-list-title').textContent = t.assetsListTitle;
+  document.getElementById('assets-list-subtitle').textContent = t.assetsListSubtitle;
+  document.getElementById('asset-search').placeholder = t.assetsSearchPlaceholder;
+  document.getElementById('th-id').textContent = t.thId;
+  document.getElementById('th-name').textContent = t.thName;
+  document.getElementById('th-category').textContent = t.thCategory;
+  document.getElementById('th-location').textContent = t.thLocation;
+  document.getElementById('th-status').textContent = t.thStatus;
+  document.getElementById('th-actions').textContent = t.thActions;
+
+  document.getElementById('inv-title').textContent = t.invTitle;
+  document.getElementById('inv-subtitle').textContent = t.invSubtitle;
+  document.getElementById('inv-filter-location-label').textContent = t.invFilterLocationLabel;
+  document.getElementById('inv-note-label').textContent = t.invNoteLabel;
+  document.getElementById('inv-refresh-text').textContent = t.invRefreshText;
+  document.getElementById('inv-generate-text').textContent = t.invGenerateText;
+  document.getElementById('inv-table-label').textContent = t.invTableLabel;
+  document.getElementById('inv-th-location').textContent = t.invThLocation;
+  document.getElementById('inv-th-total').textContent = t.invThTotal;
+  document.getElementById('inv-th-active').textContent = t.invThActive;
+  document.getElementById('inv-th-missing').textContent = t.invThMissing;
+
+  document.getElementById('dep-title').textContent = t.depTitle;
+  document.getElementById('dep-subtitle').textContent = t.depSubtitle;
+  document.getElementById('dep-method-label').textContent = t.depMethodLabel;
+  document.getElementById('dep-year-label').textContent = t.depYearLabel;
+  document.getElementById('dep-calc-text').textContent = t.depCalcText;
+  document.getElementById('dep-table-label').textContent = t.depTableLabel;
+  document.getElementById('dep-th-asset').textContent = t.depThAsset;
+  document.getElementById('dep-th-method').textContent = t.depThMethod;
+  document.getElementById('dep-th-year').textContent = t.depThYear;
+  document.getElementById('dep-th-annual').textContent = t.depThAnnual;
+  document.getElementById('dep-th-book').textContent = t.depThBook;
+
+  document.getElementById('rep-title').textContent = t.repTitle;
+  document.getElementById('rep-subtitle').textContent = t.repSubtitle;
+  document.getElementById('rep-type-label').textContent = t.repTypeLabel;
+  document.getElementById('rep-filter-label').textContent = t.repFilterLabel;
+  document.getElementById('rep-gen-text').textContent = t.repGenText;
+  document.getElementById('rep-print-text').textContent = t.repPrintText;
+  document.getElementById('rep-table-label').textContent = t.repTableLabel;
+  document.getElementById('rep-th-col1').textContent = t.repThCol1;
+  document.getElementById('rep-th-col2').textContent = t.repThCol2;
+  document.getElementById('rep-th-col3').textContent = t.repThCol3;
+  document.getElementById('rep-th-col4').textContent = t.repThCol4;
+
+  const repType = document.getElementById('rep-type');
+  repType.options[0].textContent = t.reportByLocation;
+  repType.options[1].textContent = t.reportByStatus;
+  repType.options[2].textContent = t.reportByMethod;
+
+  document.getElementById('toast-text').textContent = t.toastSaved;
+  updateCountsLabel();
+  renderAssetsTable();
+  renderInventorySummary();
+  renderDepreciationTable();
+  renderReportTable();
+}
+async function saveAsset() {
+  const payload = {
+    Asset_ID: document.getElementById('asset-id').value,
+    Asset_Name: document.getElementById('asset-name').value,
+    Category: document.getElementById('asset-category').value,
+    Location: document.getElementById('asset-location').value,
+    Purchase_Date: document.getElementById('asset-purchase-date').value,
+    Cost: document.getElementById('asset-cost').value,
+    Useful_Life: document.getElementById('asset-life').value,
+    Salvage_Value: document.getElementById('asset-salvage').value,
+    Depreciation_Method: document.getElementById('asset-method').value,
+    Current_Value: document.getElementById('asset-current').value,
+    Status: document.getElementById('asset-status').value
+  };
+
+  if (!payload.Asset_ID) payload.Asset_ID = 'AST-' + Date.now();
+
+  const isUpdate = !!editingRow;
+  const method = isUpdate ? 'UPDATE' : 'CREATE';
+
+  try {
+    const formData = new FormData();
+    formData.append('method', method);
+    formData.append('payload', JSON.stringify(payload));
+    if (isUpdate) formData.append('_row', editingRow);
+
+    const response = await fetch(WEB_APP_URL, {
+      method: 'POST',
+      body: formData
+    });
+
+    const result = await response.json();
+    if (result.status === 200) {
+      alert('✅ تم الحفظ بنجاح');
+      resetForm();
+      await loadAssets();
+    } else {
+      alert('❌ خطأ في الحفظ: ' + (result.message || JSON.stringify(result)));
+    }
+  } catch (err) {
+    console.error(err);
+    alert('❌ خطأ أثناء الاتصال بالخادم: ' + err.message);
+  }
+}
+async function deleteAsset() {
+  if (!editingRow || !confirm('هل أنت متأكد من الحذف؟')) return;
+
+  try {
+    const formData = new FormData();
+    formData.append('method', 'DELETE');
+    formData.append('_row', editingRow);
+
+    const response = await fetch(WEB_APP_URL, {
+      method: 'POST',
+      body: formData
+    });
+
+    const result = await response.json();
+    if (result.status === 200) {
+      alert('✅ تم الحذف بنجاح');
+      resetForm();
+      await loadAssets();
+    } else {
+      alert('❌ خطأ في الحذف: ' + (result.message || JSON.stringify(result)));
+    }
+  } catch (err) {
+    console.error(err);
+    alert('❌ خطأ أثناء الاتصال بالخادم: ' + err.message);
+  }
+}
+
+
+function showToast(type, messageKey) {
+  const toast = document.getElementById('toast');
+  const icon = document.getElementById('toast-icon');
+  const text = document.getElementById('toast-text');
+  const t = i18n[currentLang];
+
+  if (messageKey === 'saved') {
+    text.textContent = t.toastSaved;
+    icon.textContent = '✅';
+  } else if (messageKey === 'deleted') {
+    text.textContent = t.toastDeleted;
+    icon.textContent = '🗑️';
+  } else {
+    text.textContent = t.toastError;
+    icon.textContent = '⚠️';
+  }
+
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2800);
+}
+
+document.querySelectorAll('.nav-link').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const section = btn.getAttribute('data-section');
+    document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+    document.getElementById('section-' + section).classList.add('active');
+  });
+});
+
+document.getElementById('btn-ar').addEventListener('click', () => {
+  document.getElementById('btn-ar').classList.add('active');
+  document.getElementById('btn-en').classList.remove('active');
+  applyLang('ar');
+});
+
+document.getElementById('btn-en').addEventListener('click', () => {
+  document.getElementById('btn-en').classList.add('active');
+  document.getElementById('btn-ar').classList.remove('active');
+  applyLang('en');
+});
+
+async function loadAssets() {
+  try {
+    const res = await fetch(WEB_APP_URL);
+    const json = await res.json();
+    if (json && Array.isArray(json.records)) {
+      assets = json.records;
+    } else {
+      assets = [];
+    }
+    updateDashboard();
+    renderAssetsTable();
+    renderInventorySummary();
+  } catch (e) {
+    console.error(e);
+    showToast('error', 'error');
+  }
+}
+
+function updateDashboard() {
+  const total = assets.length;
+  const active = assets.filter(a => a.Status === 'Active').length;
+  const inactive = assets.filter(a => a.Status === 'Inactive').length;
+  const missing = assets.filter(a => a.Status === 'Missing').length;
+
+  document.getElementById('stat-total-assets').textContent = total;
+  document.getElementById('stat-active-assets').textContent = active;
+  document.getElementById('stat-inactive-assets').textContent = inactive;
+  document.getElementById('stat-missing-assets').textContent = missing;
+}
+
+function updateCountsLabel() {
+  const t = i18n[currentLang];
+  document.getElementById('asset-count-label').textContent = assets.length + ' ' + t.countAssets;
+}
+
+function renderAssetsTable() {
+  const tbody = document.getElementById('assets-tbody');
+  tbody.innerHTML = '';
+  const q = document.getElementById('asset-search').value.trim().toLowerCase();
+
+  const filtered = assets.filter(a => {
+    const id = (a.Asset_ID || '').toString().toLowerCase();
+    const name = (a.Asset_Name || '').toString().toLowerCase();
+    return !q || id.includes(q) || name.includes(q);
+  });
+
+  filtered.forEach((a, index) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${a.Asset_ID || ''}</td>
+      <td>${a.Asset_Name || ''}</td>
+      <td>${a.Category || ''}</td>
+      <td>${a.Location || ''}</td>
+      <td>${renderStatusBadge(a.Status)}</td>
+      <td>
+        <button class="btn btn-outline btn-sm" data-idx="${assets.indexOf(a)}">✏️</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  updateCountsLabel();
+
+  tbody.querySelectorAll('button[data-idx]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.getAttribute('data-idx'));
+      loadAssetToForm(idx);
+    });
+  });
+}
+
+function renderStatusBadge(status) {
+  const t = i18n[currentLang];
+  let cls = 'badge badge-active';
+  let text = t.statusActive;
+  let icon = '✅';
+  if (status === 'Inactive') {
+    cls = 'badge badge-inactive';
+    text = t.statusInactive;
+    icon = '⚪';
+  } else if (status === 'Missing') {
+    cls = 'badge badge-missing';
+    text = t.statusMissing;
+    icon = '🚨';
+  }
+  return `<span class="${cls}"><span>${icon}</span><span>${text}</span></span>`;
+}
+
+function loadAssetToForm(idx) {
+  const a = assets[idx];
+  document.getElementById('asset-row').value = a._row || '';
+  document.getElementById('asset-id').value = a.Asset_ID || '';
+  document.getElementById('asset-name').value = a.Asset_Name || '';
+  document.getElementById('asset-category').value = a.Category || '';
+  document.getElementById('asset-location').value = a.Location || '';
+  document.getElementById('asset-purchase-date').value = a.Purchase_Date || '';
+  document.getElementById('asset-cost').value = a.Cost || '';
+  document.getElementById('asset-life').value = a.Useful_Life || '';
+  document.getElementById('asset-salvage').value = a.Salvage_Value || '';
+  document.getElementById('asset-method').value = a.Depreciation_Method || 'Straight-Line';
+  document.getElementById('asset-current').value = a.Current_Value || '';
+  document.getElementById('asset-status').value = a.Status || 'Active';
+  document.getElementById('btn-delete').style.display = 'inline-flex';
+}
+
+function resetForm() {
+  document.getElementById('asset-row').value = '';
+  document.getElementById('asset-id').value = '';
+  document.getElementById('asset-name').value = '';
+  document.getElementById('asset-category').value = '';
+  document.getElementById('asset-location').value = '';
+  document.getElementById('asset-purchase-date').value = '';
+  document.getElementById('asset-cost').value = '';
+  document.getElementById('asset-life').value = '';
+  document.getElementById('asset-salvage').value = '';
+  document.getElementById('asset-method').value = 'Straight-Line';
+  document.getElementById('asset-current').value = '';
+  document.getElementById('asset-status').value = 'Active';
+  document.getElementById('btn-delete').style.display = 'none';
+}
+
+document.getElementById('btn-reset-form').addEventListener('click', resetForm);
+
+document.getElementById('asset-search').addEventListener('input', renderAssetsTable);
+
+document.getElementById('asset-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const row = document.getElementById('asset-row').value;
+  const payload = {
+    Asset_ID: document.getElementById('asset-id').value.trim(),
+    Asset_Name: document.getElementById('asset-name').value.trim(),
+    Category: document.getElementById('asset-category').value.trim(),
+    Location: document.getElementById('asset-location').value.trim(),
+    Purchase_Date: document.getElementById('asset-purchase-date').value,
+    Cost: document.getElementById('asset-cost').value,
+    Useful_Life: document.getElementById('asset-life').value,
+    Salvage_Value: document.getElementById('asset-salvage').value,
+    Depreciation_Method: document.getElementById('asset-method').value,
+    Current_Value: document.getElementById('asset-current').value,
+    Status: document.getElementById('asset-status').value
+  };
+
+  if (!payload.Asset_ID) {
+    payload.Asset_ID = 'AST-' + Date.now();
+  }
+
+  if (row) payload._row = parseInt(row);
+
+  const method = row ? 'UPDATE' : 'CREATE';
+
+  try {
+    await fetch(WEB_APP_URL + '?method=' + method, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    showToast('success', 'saved');
+    resetForm();
+    await loadAssets();
+  } catch (err) {
+    console.error(err);
+    showToast('error', 'error');
+  }
+});
+
+document.getElementById('btn-delete').addEventListener('click', async () => {
+  const row = document.getElementById('asset-row').value;
+  if (!row) return;
+  const payload = { _row: parseInt(row) };
+  try {
+    await fetch(WEB_APP_URL + '?method=DELETE', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    showToast('success', 'deleted');
+    resetForm();
+    await loadAssets();
+  } catch (err) {
+    console.error(err);
+    showToast('error', 'error');
+  }
+});
+
+function renderInventorySummary() {
+  const tbody = document.getElementById('inv-tbody');
+  tbody.innerHTML = '';
+  const filterLoc = document.getElementById('inv-filter-location').value.trim().toLowerCase();
+
+  const groups = {};
+  assets.forEach(a => {
+    const loc = (a.Location || 'N/A').trim();
+    if (filterLoc && !loc.toLowerCase().includes(filterLoc)) return;
+    if (!groups[loc]) {
+      groups[loc] = { total: 0, active: 0, missing: 0 };
+    }
+    groups[loc].total++;
+    if (a.Status === 'Active') groups[loc].active++;
+    if (a.Status === 'Missing') groups[loc].missing++;
+  });
+
+  Object.keys(groups).forEach(loc => {
+    const g = groups[loc];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${loc}</td>
+      <td>${g.total}</td>
+      <td>${g.active}</td>
+      <td>${g.missing}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+document.getElementById('inv-filter-location').addEventListener('input', renderInventorySummary);
+document.getElementById('btn-refresh-inv').addEventListener('click', loadAssets);
+document.getElementById('btn-generate-inv').addEventListener('click', () => {
+  renderInventorySummary();
+  showToast('success', 'saved');
+});
+
+function computeStraightLine(cost, salvage, years) {
+  cost = parseFloat(cost) || 0;
+  salvage = parseFloat(salvage) || 0;
+  years = parseInt(years) || 1;
+  const dep = (cost - salvage) / years;
+  return { annual: dep, book: cost - dep * years };
+}
+
+function computeDeclining(cost, salvage, years) {
+  cost = parseFloat(cost) || 0;
+  salvage = parseFloat(salvage) || 0;
+  years = parseInt(years) || 1;
+  const rate = 2 / years;
+  let book = cost;
+  for (let i = 0; i < years; i++) {
+    const dep = book * rate;
+    book -= dep;
+    if (book < salvage) {
+      book = salvage;
+      break;
+    }
+  }
+  const annual = (cost - book) / years;
+  return { annual, book };
+}
+
+function computeUnitsOfProduction(cost, salvage, years) {
+  return computeStraightLine(cost, salvage, years);
+}
+
+function renderDepreciationTable() {
+  const tbody = document.getElementById('dep-tbody');
+  tbody.innerHTML = '';
+  const years = parseInt(document.getElementById('dep-years').value) || 5;
+
+  assets.forEach(a => {
+    const method = a.Depreciation_Method || document.getElementById('dep-method-global').value;
+    const cost = a.Cost || 0;
+    const salvage = a.Salvage_Value || 0;
+    let result;
+    if (method === 'Straight-Line') {
+      result = computeStraightLine(cost, salvage, years);
+    } else if (method === 'Declining-Balance') {
+      result = computeDeclining(cost, salvage, years);
+    } else {
+      result = computeUnitsOfProduction(cost, salvage, years);
+    }
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${a.Asset_Name || a.Asset_ID || ''}</td>
+      <td>${method}</td>
+      <td>${years}</td>
+      <td>${result.annual.toFixed(2)}</td>
+      <td>${result.book.toFixed(2)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+document.getElementById('btn-calc-dep').addEventListener('click', () => {
+  renderDepreciationTable();
+  showToast('success', 'saved');
+});
+
+function renderReportTable() {
+  const tbody = document.getElementById('rep-tbody');
+  tbody.innerHTML = '';
+  const type = document.getElementById('rep-type').value;
+  const filter = document.getElementById('rep-filter').value.trim().toLowerCase();
+
+  const groups = {};
+  assets.forEach(a => {
+    let key = '';
+    if (type === 'by-location') key = (a.Location || 'N/A').trim();
+    if (type === 'by-status') key = (a.Status || 'Unknown').trim();
+    if (type === 'by-method') key = (a.Depreciation_Method || 'N/A').trim();
+
+    if (filter && !key.toLowerCase().includes(filter)) return;
+    if (!groups[key]) {
+      groups[key] = { count: 0, cost: 0, current: 0 };
+    }
+    groups[key].count++;
+    groups[key].cost += parseFloat(a.Cost || 0);
+    groups[key].current += parseFloat(a.Current_Value || 0);
+  });
+
+  Object.keys(groups).forEach(k => {
+    const g = groups[k];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${k}</td>
+      <td>${g.count}</td>
+      <td>${g.cost.toFixed(2)}</td>
+      <td>${g.current.toFixed(2)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+document.getElementById('btn-gen-report').addEventListener('click', () => {
+  renderReportTable();
+  showToast('success', 'saved');
+});
+
+document.getElementById('btn-print-report').addEventListener('click', () => {
+  const t = i18n[currentLang];
+  const printWindow = window.open('', '_blank');
+  const tableHtml = document.getElementById('rep-table').outerHTML;
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>${t.printTitle}</title>
+        <meta charset="UTF-8">
+        <style>
+          body { font-family: system-ui; padding: 16px; }
+          table { border-collapse: collapse; width: 100%; }
+          th, td { border: 1px solid #e5e7eb; padding: 6px 8px; font-size: 12px; }
+          th { background: #f3f4f6; }
+        </style>
+      </head>
+      <body>
+        <h2>${t.printTitle}</h2>
+        ${tableHtml}
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.print();
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+  applyLang('ar');
+  loadAssets();
+});
+</script>
+</body>
+</html>

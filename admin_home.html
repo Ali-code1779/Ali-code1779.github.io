@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <title>صفحة المشرف</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      direction: rtl;
+      margin: 20px;
+      background-color: #f9f9f9;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background-color: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+      vertical-align: top;
+    }
+    th {
+      background-color: #e9f1ff;
+    }
+    button {
+      padding: 6px 12px;
+      margin: 5px;
+      cursor: pointer;
+      background-color: #0077cc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      transition: background-color 0.2s ease;
+    }
+    button:hover {
+      background-color: #005fa3;
+    }
+    #logout {
+      float: left;
+      background-color: #cc0000;
+    }
+    #logout:hover {
+      background-color: #a30000;
+    }
+    .app-checkbox {
+      display: block;
+      text-align: right;
+      margin-bottom: 5px;
+    }
+    .sub-apps {
+      margin-right: 15px;
+      font-size: 14px;
+      display: block;
+    }
+    strong {
+      color: #0077cc;
+    }
+    #status {
+      color: red;
+      text-align: center;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <button id="logout">تسجيل خروج</button>
+  <h2>لوحة تحكم المشرف - إدارة المستخدمين</h2>
+
+  <table id="usersTable">
+    <thead>
+      <tr>
+        <th>الرقم</th>
+        <th>الاسم</th>
+        <th>البريد الإلكتروني</th>
+        <th>اسم المستخدم</th>
+        <th>الدور</th>
+        <th>نشط</th>
+        <th>تاريخ التسجيل</th>
+        <th>الصلاحيات (التطبيقات)</th>
+        <th>تحديث</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- سيتم إدراج بيانات المستخدمين هنا -->
+    </tbody>
+  </table>
+
+  <p id="status"></p>
+
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbzZiNu7E3n3OMJLCjllvK9fCQ9UoF7-pBQI9EeoSsHDx_zoPNmXekD497M6SEeEMxpw/exec";
+
+    const availableApps = {
+      "المنبهات": [
+        { id: "product_timer", name: "منبه المنتجات" },
+        { id: "branch_docs", name: "رخص وأوراق الفرع" },
+        { id: "employee_docs", name: "أوراق الموظفين" },
+        { id: "orders_schedule", name: "مواعيد الطلبيات" },
+        { id: "manager_tasks", name: "مهام المدير" },
+        { id: "inventory_alerts", name: "صلاحيات المخزون" },
+        { id: "work_hours", name: "ساعات العمل" }
+      ],
+      "سرعة الخدمة": true,
+      "تحكم بالطلبيات": true,
+      "مبيعات": true,
+      "جدول الاعمال": true,
+      "خطط الفرع": true,
+      "تعريف بالفرع": true,
+      "قاعدة بيانات الموظفين": true,
+      "المهام الوظيفية لكل موظف": true,
+      "الجرد": true,
+      "أعمال الصيانة المطلوبة": true,
+      "المصروفات": true,
+      "تسليم الخرينة": true,
+      "قائمة الأعمال اليومية": true
+    };
+
+    function fetchUsers() {
+      fetch(`${scriptURL}?method=get`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            populateTable(data.users);
+          } else {
+            showError("تعذر جلب بيانات المستخدمين.");
+          }
+        })
+        .catch(() => {
+          showError("حدث خطأ أثناء الاتصال بالخادم.");
+        });
+    }
+
+    function showError(msg) {
+      document.getElementById("status").innerText = msg;
+    }
+
+    function populateTable(users) {
+      const tbody = document.querySelector("#usersTable tbody");
+      tbody.innerHTML = "";
+
+      users.forEach((user, index) => {
+        let userApps = {};
+        try {
+          userApps = JSON.parse(user.apps || "{}");
+        } catch {}
+
+        let appsHTML = "";
+        for (let app in availableApps) {
+          if (Array.isArray(availableApps[app])) {
+            appsHTML += `<div class="app-checkbox"><strong>${app}</strong></div>`;
+            availableApps[app].forEach(sub => {
+              const checked = userApps[app]?.includes(sub.id) ? "checked" : "";
+              appsHTML += `
+                <label class="sub-apps">
+                  <input type="checkbox" data-app="${app}" value="${sub.id}" ${checked} />
+                  ${sub.name}
+                </label>`;
+            });
+          } else {
+            const checked = userApps[app] === true ? "checked" : "";
+            appsHTML += `
+              <label class="app-checkbox">
+                <input type="checkbox" data-app="${app}" ${checked} />
+                ${app}
+              </label>`;
+          }
+        }
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${user.name || ""}</td>
+          <td>${user.email || ""}</td>
+          <td>${user.username || ""}</td>
+          <td>
+            <select onchange="changeRole('${user.username}', this.value)">
+              <option value="user" ${user.role === "user" ? "selected" : ""}>مستخدم</option>
+              <option value="admin" ${user.role === "admin" ? "selected" : ""}>مشرف</option>
+            </select>
+          </td>
+          <td>${user.active ? "نعم" : "لا"}</td>
+          <td>${user.dateRegistered ? new Date(user.dateRegistered).toLocaleDateString() : ""}</td>
+          <td>${appsHTML}</td>
+          <td><button onclick="saveApps(this, '${user.username}')">حفظ</button></td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    function changeRole(username, newRole) {
+      if (!confirm(`هل أنت متأكد من تغيير دور المستخدم "${username}" إلى "${newRole}"؟`)) return;
+
+      const params = new URLSearchParams({
+        method: "updateRole",
+        username,
+        role: newRole
+      });
+
+      fetch(`${scriptURL}?${params.toString()}`)
+        .then(res => res.json())
+        .then(data => {
+          alert(data.success ? "تم تحديث الدور بنجاح." : "فشل تحديث الدور.");
+        })
+        .catch(() => {
+          alert("حدث خطأ أثناء الاتصال بالخادم.");
+        });
+    }
+
+    function saveApps(button, username) {
+      const checkboxes = button.closest("tr").querySelectorAll("input[type=checkbox]");
+      const selected = {};
+
+      checkboxes.forEach(cb => {
+        const app = cb.getAttribute("data-app");
+        if (!app) return;
+
+        if (availableApps[app] === true) {
+          selected[app] = cb.checked;
+        } else {
+          if (!selected[app]) selected[app] = [];
+          if (cb.checked) selected[app].push(cb.value);
+        }
+      });
+
+      const params = new URLSearchParams({
+        method: "updateApps",
+        username,
+        enabledApps: JSON.stringify(selected)
+      });
+
+      fetch(`${scriptURL}?${params.toString()}`)
+        .then(res => res.json())
+        .then(data => {
+          alert(data.success ? "تم حفظ الصلاحيات." : "فشل في حفظ الصلاحيات.");
+        })
+        .catch(() => {
+          alert("حدث خطأ أثناء حفظ الصلاحيات.");
+        });
+    }
+
+    document.getElementById("logout").addEventListener("click", () => {
+      localStorage.removeItem("loggedUser");
+      window.location.href = "login.html";
+    });
+
+    window.onload = () => {
+      fetchUsers();
+    };
+  </script>
+
+</body>
+</html>

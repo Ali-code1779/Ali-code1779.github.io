@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>موقع علي محفوظ</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* استايل عام */
+        body {
+            margin: 0;
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            direction: ltr; /* تغيير اتجاه النصوص */
+        }
+
+        /* الشريط الجانبي */
+        .sidebar {
+            width: 125px;
+            background-color: #fff;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            order: -1; /* نقل الشريط الجانبي لليسار */
+        }
+
+        .sidebar-header {
+            padding: 0px;
+            background-color: #4267B2;
+            color: #fff;
+            text-align: center;
+        }
+
+        .sidebar nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar nav ul li {
+            border-bottom: 1px solid #ddd;
+        }
+
+        .sidebar nav ul li a {
+            display: flex;
+            align-items: center;
+            padding: 20px 10px;
+            color: #333;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+
+        .sidebar nav ul li a:hover {
+            background-color: #f0f0f0;
+        }
+
+        .sidebar nav ul li a i {
+            margin-right: 10px;
+        }
+
+        /* الشريط العلوي */
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 125px; /* مواءمة بداية الشريط العلوي مع الشريط الجانبي */
+            right: 0;
+            height: 70px;
+            background-color: #fff;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1000;
+        }
+
+        .datetime span {
+            margin-right: 5px;
+            font-size: 19px;
+            color: #995;
+        }
+
+        .language-selector {
+            display: flex;
+            align-items: center;
+        }
+
+        .language-selector label {
+            margin-right: 10px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .language-selector select {
+            padding: 5px;
+            font-size: 14px;
+        }
+
+        /* زر التطبيقات العائم */
+        .floating-button {
+            position: fixed;
+            bottom: 15px;
+            left: 1px; /* تغيير موقع الزر ليظهر بجانب الشريط الجانبي */
+            background-color: #4267B2;
+            color: #fff;
+            padding: 15px 12px;
+            border-radius: 50px;
+            text-decoration: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            transition: background 0.3s;
+        }
+
+        .floating-button:hover {
+            background-color: #365899;
+        }
+
+        .floating-button i {
+            margin-right: 10px;
+        }
+
+        /* استايلات استجابة */
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 200px;
+            }
+
+            .topbar {
+                left: 200px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+
+            .topbar {
+                left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- الشريط الجانبي -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2 id="siteTitle">موقع علي محفوظ</h2>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.html" onclick="navigateTo('index.html')"><i class="fas fa-home"></i> <span id="homeText">الرئيسية</span></a></li>
+                <li><a href="apps.html" onclick="navigateTo('apps.html')"><i class="fas fa-th"></i> <span id="appsText">التطبيقات</span></a></li>
+                <li><a href="about.html" onclick="navigateTo('about.html')"><i class="fas fa-info-circle"></i> <span id="aboutText">حولنا</span></a></li>
+                <li><a href="contact.html" onclick="navigateTo('contact.html')"><i class="fas fa-envelope"></i> <span id="contactText">تواصل معنا</span></a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- الشريط العلوي -->
+    <header class="topbar">
+        <div class="datetime">
+            <span id="date"></span>
+            <span id="time"></span>
+            <span id="day"></span>
+        </div>
+        <div class="topbar-actions">
+            <div class="language-selector">
+                <label for="language" id="languageLabel">اللغة:</label>
+                <select id="language">
+                    <option value="ar">العربية</option>
+                    <option value="en">English</option>
+                    <option value="fr">Français</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <!-- زر تطبيقات عائم -->
+    <a href="apps.html" class="floating-button" onclick="navigateTo('apps.html')">
+        <i class="fas fa-th"></i> <span id="floatingButtonText">التطبيقات</span>
+    </a>
+
+    <!-- سكريبت -->
+    <script>
+        const translations = {
+            ar: {
+                siteTitle: "موقع علي محفوظ",
+                home: "الرئيسية",
+                apps: "التطبيقات",
+                about: "حولنا",
+                contact: "تواصل معنا",
+                floatingButton: "التطبيقات",
+                languageLabel: "اللغة:"
+            },
+            en: {
+                siteTitle: "Ali Mahfouz Website",
+                home: "Home",
+                apps: "Apps",
+                about: "About Us",
+                contact: "Contact Us",
+                floatingButton: "Apps",
+                languageLabel: "Language:"
+            },
+            fr: {
+                siteTitle: "Site de Ali Mahfouz",
+                home: "Accueil",
+                apps: "Applications",
+                about: "À propos de nous",
+                contact: "Nous contacter",
+                floatingButton: "Applications",
+                languageLabel: "Langue:"
+            }
+        };
+
+        function changeLanguage(lang) {
+            const translation = translations[lang];
+            document.getElementById('siteTitle').textContent = translation.siteTitle;
+            document.getElementById('homeText').textContent = translation.home;
+            document.getElementById('appsText').textContent = translation.apps;
+            document.getElementById('aboutText').textContent = translation.about;
+            document.getElementById('contactText').textContent = translation.contact;
+            document.getElementById('floatingButtonText').textContent = translation.floatingButton;
+            document.getElementById('languageLabel').textContent = translation.languageLabel;
+        }
+
+        document.getElementById('language').addEventListener('change', (e) => {
+            changeLanguage(e.target.value);
+        });
+
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('date').textContent = now.toLocaleDateString('ar-EG');
+            document.getElementById('time').textContent = now.toLocaleTimeString('ar-EG');
+            document.getElementById('day').textContent = now.toLocaleDateString('ar-EG', { weekday: 'long' });
+        }
+
+        setInterval(updateTime, 1000);
+
+        function navigateTo(page) {
+            window.location.href = page;
+        }
+    </script>
+</body>
+</html>
+
+
+    <div class="container">
+        <header>
+            <h1>نظام إدارة الموارد البشرية والمؤقتات</h1>
+            <p id="currentDateTime"></p>
+            <select id="languageSwitcher">
+                <option value="en">English</option>
+                <option value="ar">العربية</option>
+                <option value="hi">हिन्दी</option>
+                <option value="ur">اردو</option>
+                <option value="ne">नेपाली</option>
+                <option value="si">සිංහල</option>
+                <option value="tl">Tagalog</option>
+            </select>
+        </header>
+
+        <main>
+            <div class="employee-management">
+                <button id="addEmployeeBtn">إضافة موظف جديد</button>
+                <button id="updateDataBtn">تحديث البيانات</button>
+                <button id="startWorkTimerBtn">بدء مؤقت ساعات العمل</button>
+
+                <div id="employeeFormContainer" style="display: none;">
+                    <h2>إدارة الموظفين</h2>
+                    <form id="employeeForm">
+                        <!-- Existing form fields -->
+                        <label for="branchNumber">رقم الفرع:</label>
+                        <input type="text" id="branchNumber" name="branchNumber" required>
+                        
+                        <label for="employeeName">اسم الموظف:</label>
+                        <input type="text" id="employeeName" name="employeeName" required>
+                        
+                        <label for="employeeId">الرقم الوظيفي:</label>
+                        <input type="text" id="employeeId" name="employeeId" required>
+                        
+                        <label for="jobTitle">الوظيفة:</label>
+                        <input type="text" id="jobTitle" name="jobTitle" required>
+                        
+                        <label for="basicHours">ساعات العمل الأساسية:</label>
+                        <input type="number" id="basicHours" name="basicHours" required>
+                        
+                        <label for="extraHours">ساعات اضافية مطلوبة:</label>
+                        <input type="number" id="extraHours" name="extraHours">
+                        
+                        <label for="totalHours">إجمالي ساعات العمل:</label>
+                        <input type="number" id="totalHours" name="totalHours" required>
+                        
+                        <label for="vacationDays">أيام العطلة السنوية:</label>
+                        <input type="number" id="vacationDays" name="vacationDays" required>
+                        
+                        <button type="submit">حفظ</button>
+                    </form>
+                </div>
+
+                <div id="workTimerContainer" style="display: none;">
+                    <h2>بدء مؤقت ساعات العمل</h2>
+                    <form id="workTimerForm">
+                        <label for="employeeIdToStart">رقم الموظف:</label>
+                        <input type="text" id="employeeIdToStart" name="employeeIdToStart" required>
+                        
+                        <label for="workLocation">موقع العمل:</label>
+                        <select id="workLocation" name="workLocation" required>
+                            <option value="cashier-individual">كاشير صالة أفراد</option>
+                            <option value="cashier-car-service">كاشير خدمة سيارات</option>
+                            <option value="cashier-family-section">كاشير قسم عائلات</option>
+                            <option value="kitchen-prep-site">عامل مطبخ موقع تحضير</option>
+                            <option value="kitchen-product-settlement">عامل مطبخ موقع تسوية منتجات</option>
+                            <option value="kitchen-assistant">عامل مطبخ مساعد</option>
+                            <option value="cleaner">عامل نظافة</option>
+                            <option value="counter-assistant">عامل مساعد للكاونتر</option>
+                            <option value="shift-manager">مدير وردية</option>
+                            <option value="shift-assistant-manager">مساعد مدير وردية</option>
+                            <option value="delivery-driver">سائق توصيل</option>
+                            <option value="security-guard">حارس أمن</option>
+                        </select>
+
+                        <label for="basicHoursToStart">ساعات العمل الأساسية:</label>
+                        <input type="number" id="basicHoursToStart" name="basicHoursToStart" required>
+
+                        <label for="extraHoursToStart">ساعات إضافية:</label>
+                        <input type="number" id="extraHoursToStart" name="extraHoursToStart">
+                        
+                        <button type="button" id="startTimerBtn">بدء</button>
+                    </form>
+                    <div id="confirmationContainer" style="display: none;">
+                        <p>هل قمت بتسجيل البصمة على جهاز البصمة بالفرع؟</p>
+                        <button id="confirmYes">نعم</button>
+                        <button id="confirmNo">لا</button>
+                    </div>
+                </div>
+                
+                <div id="timerReportContainer" style="display: none;">
+                    <h2>التقارير المؤقتة</h2>
+                    <table id="timerReportsTable">
+                        <thead>
+                            <tr>
+                                <th>التسلسل</th>
+                                <th>رقم الموظف</th>
+                                <th>وقت تسجيل الدخول</th>
+                                <th>موعد الراحة</th>
+                                <th>الوقت المتبقي على الراحة</th>
+                                <th>الوقت المتبقي على انتهاء العمل</th>
+                                <th>موقع العمل</th>
+                            </tr>
+                        </thead>
+                        <tbody id="timerReportTableBody">
+                            <!-- Dynamic rows will be added here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/i18next@21.6.10/dist/umd/i18next.min.js"></script>
+    <script src="https://unpkg.com/i18next-browser-languagedetector@6.1.3/dist/umd/i18nextBrowserLanguageDetector.min.js"></script>
+    <script src="script.js"></script>
+    <script src="timer.js"></script>
+    <script>
+        document.getElementById('addEmployeeBtn').addEventListener('click', function() {
+            var password = prompt("يرجى إدخال كلمة المرور:");
+            if (password === "1234") {
+                var formContainer = document.getElementById('employeeFormContainer');
+                formContainer.style.display = 'block';
+                document.getElementById('workTimerContainer').style.display = 'none';
+                document.getElementById('timerReportContainer').style.display = 'none';
+            } else {
+                alert("كلمة المرور غير صحيحة!");
+            }
+        });
+
+        document.getElementById('startWorkTimerBtn').addEventListener('click', function() {
+            var password = prompt("يرجى إدخال كلمة المرور:");
+            if (password === "1234") {
+                var workTimerContainer = document.getElementById('workTimerContainer');
+                workTimerContainer.style.display = 'block';
+                document.getElementById('employeeFormContainer').style.display = 'none';
+                document.getElementById('timerReportContainer').style.display = 'none';
+            } else {
+                alert("كلمة المرور غير صحيحة!");
+            }
+        });
+
+        document.getElementById('startTimerBtn').addEventListener('click', function() {
+            var employeeId = document.getElementById('employeeIdToStart').value;
+            var workLocation = document.getElementById('workLocation').value;
+            var basicHours = document.getElementById('basicHoursToStart').value;
+            var extraHours = document.getElementById('extraHoursToStart').value;
+
+            if (employeeId && workLocation && basicHours) {
+                var currentTime = new Date();
+                var endTime = new Date(currentTime.getTime() + (basicHours * 60 * 60 * 1000) + (extraHours ? extraHours * 60 * 60 * 1000 : 0));
+
+                var reportTableBody = document.getElementById('timerReportTableBody');
+                var newRow = reportTableBody.insertRow();
+                newRow.insertCell(0).textContent = reportTableBody.rows.length;
+                newRow.insertCell(1).textContent = employeeId;
+                newRow.insertCell(2).textContent = currentTime.toLocaleString();
+                newRow.insertCell(3).textContent = '20 دقيقة'; // Placeholder for actual break time
+                newRow.insertCell(4).textContent = 'غير محدد'; // Placeholder for remaining break time
+                newRow.insertCell(5).textContent = 'غير محدد'; // Placeholder for remaining work time
+                newRow.insertCell(6).textContent = workLocation;
+
+                document.getElementById('workTimerContainer').style.display = 'none';
+                document.getElementById('timerReportContainer').style.display = 'block';
+                
+                setInterval(function() {
+                    var now = new Date();
+                    var remainingTime = endTime - now;
+                    if (remainingTime > 0) {
+                        var hours = Math.floor(remainingTime / (1000 * 60 * 60));
+                        var minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
+                        var seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+                        newRow.cells[5].textContent = hours + ' ساعة ' + minutes + ' دقيقة ' + seconds + ' ثانية';
+                        if (remainingTime <= 3600000) {
+                            newRow.cells[5].style.color = 'red';
+                        }
+                    } else {
+                        newRow.cells[5].textContent = 'انتهت';
+                        clearInterval();
+                    }
+                }, 1000);
+            } else {
+                alert("يرجى ملء كافة الحقول المطلوبة.");
+            }
+        });
+
+        document.getElementById('employeeForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            alert("تم تسجيل الموظف بنجاح!");
+            document.getElementById('employeeFormContainer').style.display = 'none';
+            document.getElementById('workTimerContainer').style.display = 'none';
+        });
+    </script>
+</body>
+</html>

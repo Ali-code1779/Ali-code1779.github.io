@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>لوحة إدارة المستخدمين والتطبيقات</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f9fafb; margin: 0; padding: 20px; }
+    h1 { color: #007BFF; margin-bottom: 18px; }
+    .add-btn, .follower-btn, .apps-btn, .report-btn {
+      background-color: #28a745; color: white; padding: 8px 20px;
+      border-radius: 5px; border: none; cursor: pointer; font-size: 1rem; font-weight: bold;
+      margin-bottom: 15px; margin-left: 10px; transition: background 0.2s;
+    }
+    .add-btn:hover, .follower-btn:hover, .apps-btn:hover, .report-btn:hover { background: #218838; }
+    #searchBar {
+      margin: 15px 0 10px 0; padding: 10px; width: 300px; border-radius: 5px;
+      border: 1px solid #ccc; font-size: 1rem;
+    }
+    #messageBox {
+      padding: 10px; margin-top: 10px; border-radius: 5px; display: none; font-weight: bold;
+      font-size: 1rem; text-align: center;
+    }
+    .success { background-color: #d4edda; color: #155724; }
+    .error { background-color: #f8d7da; color: #721c24; }
+    table {
+      width: 100%; border-collapse: collapse; background: white; border-radius: 8px;
+      overflow: hidden; box-shadow: 0 0 10px rgba(0,0,0,0.08); margin-top: 15px;
+    }
+    th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; font-size: 1rem; }
+    th { background-color: #007BFF; color: white; }
+    tr:hover { background-color: #f1f5f9; }
+    .action-btn {
+      padding: 6px 12px; border: none; border-radius: 5px; cursor: pointer; margin: 0 3px;
+      font-size: 0.95rem; transition: background 0.2s;
+    }
+    .delete-btn { background-color: #dc3545; color: white; }
+    .delete-btn:hover { background: #b81c2b; }
+    .follower-btn { background-color: #17a2b8; color: #fff; }
+    .follower-btn:hover { background: #117a8b; }
+    .apps-btn { background-color: #6f42c1; color: #fff; }
+    .apps-btn:hover { background: #563d7c; }
+    .report-btn { background-color: #ffc107; color: #222; }
+    .report-btn:hover { background: #e0a800; }
+    #addUserForm, #addFollowerForm {
+      display: none; margin-top: 20px; background: #fff; padding: 20px 18px;
+      border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.09); max-width: 420px;
+    }
+    #addUserForm label, #addFollowerForm label { font-weight: bold; }
+    #addUserForm input, #addUserForm select, #addFollowerForm input, #addFollowerForm select {
+      width: 98%; padding: 7px; margin: 5px 0 14px 0; border-radius: 5px; border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+    #addUserForm button, #addFollowerForm button {
+      padding: 7px 16px; border-radius: 5px; border: none; cursor: pointer; font-size: 1rem;
+      margin-right: 10px; margin-top: 8px;
+    }
+    #addUserForm .cancel-btn, #addFollowerForm .cancel-btn { background: #888; color: #fff; }
+    #addUserForm .add-btn, #addFollowerForm .add-btn { background: #28a745; color: #fff; }
+    #addUserMessage, #addFollowerMessage { margin-top: 10px; font-weight: bold; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.25); z-index: 9999; align-items: center; justify-content: center; }
+    .modal-content {
+      background: #fff; border-radius: 12px; padding: 25px 20px; min-width: 300px; max-width: 97vw;
+      box-shadow: 0 0 20px rgba(0,0,0,0.18);
+      position: relative;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .modal-close {
+      position: absolute; left: 10px; top: 10px; color: #dc3545; font-size: 1.5em; cursor: pointer;
+      background: none; border: none;
+    }
+    .modal h3 { margin-top: 0; }
+    .apps-list label { display: block; margin: 6px 0; cursor: pointer; }
+    .apps-list input[type="checkbox"] { margin-left: 7px; }
+    @media (max-width: 700px) {
+      table, thead, tbody, th, td, tr { font-size: 0.93em; }
+      #addUserForm, #addFollowerForm { max-width: 98vw; }
+      #searchBar { width: 98vw; }
+      .modal-content { padding: 11px 7px; }
+    }
+  </style>
+</head>
+<body>
+  <h1>لوحة إدارة المستخدمين والتطبيقات</h1>
+  <button class="add-btn" onclick="showAddUserForm()">➕ إضافة مستخدم جديد</button>
+  <button class="follower-btn" onclick="showAddFollowerForm()">➕ إضافة تابع</button>
+  <button class="report-btn" onclick="showLogs()">📊 تقارير الأحداث</button>
+  <input type="text" id="searchBar" placeholder="🔍 ابحث بالاسم أو البريد أو اسم المستخدم..." oninput="filterTable()" />
+  <div id="messageBox"></div>
+  <table id="usersTable" style="display:none;">
+    <thead>
+      <tr>
+        <th>الرقم</th><th>الاسم</th><th>البريد الإلكتروني</th><th>اسم المستخدم</th>
+        <th>الدور</th><th>الحالة</th><th>تاريخ التسجيل</th><th>الإجراءات</th>
+      </tr>
+    </thead>
+    <tbody id="usersTableBody"></tbody>
+  </table>
+
+  <!-- نموذج إضافة مستخدم -->
+  <div id="addUserForm">
+    <h3>إضافة مستخدم جديد</h3>
+    <label>الاسم:<br><input type="text" id="name" /></label>
+    <label>البريد الإلكتروني:<br><input type="email" id="email" /></label>
+    <label>اسم المستخدم:<br><input type="text" id="username" /></label>
+    <label>كلمة المرور:<br><input type="password" id="password" /></label>
+    <label>الدور:<br>
+      <select id="role">
+        <option value="user">مستخدم</option>
+        <option value="admin">أدمن</option>
+      </select>
+    </label>
+    <div id="followersSection">
+      <h4>إضافة تابعين (اختياري):</h4>
+      <div id="followersInputs"></div>
+      <button type="button" onclick="addFollowerInput()">+ تابع جديد</button>
+    </div>
+    <button class="add-btn" onclick="registerUser()">تسجيل</button>
+    <button class="cancel-btn" onclick="hideAddUserForm()">إلغاء</button>
+    <div id="addUserMessage"></div>
+  </div>
+
+  <!-- نموذج إضافة تابع -->
+  <div id="addFollowerForm">
+    <h3>إضافة تابع لمستخدم</h3>
+    <label>اختر المستخدم الرئيسي:<br>
+      <select id="mainUser"></select>
+    </label>
+    <label>اسم التابع:<br><input type="text" id="followerName" /></label>
+    <label>كلمة مرور التابع:<br><input type="password" id="followerPassword" /></label>
+    <button class="add-btn" onclick="registerFollower()">إضافة التابع</button>
+    <button class="cancel-btn" onclick="hideAddFollowerForm()">إلغاء</button>
+    <div id="addFollowerMessage"></div>
+  </div>
+
+  <!-- نافذة عرض التابعين -->
+  <div id="followersModal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('followersModal')">&times;</button>
+      <h3>تابعو المستخدم: <span id="followersUsername"></span></h3>
+      <ul id="followersList"></ul>
+    </div>
+  </div>
+
+  <!-- نافذة التطبيقات -->
+  <div id="appsModal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('appsModal')">&times;</button>
+      <h3>تطبيقات المستخدم: <span id="appsUsername"></span></h3>
+      <form id="appsForm">
+        <div class="apps-list" id="appsList"></div>
+        <button type="submit" class="add-btn">تحديث التطبيقات</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- نافذة التقارير -->
+  <div id="logsModal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('logsModal')">&times;</button>
+      <h3>تقارير الأحداث</h3>
+      <table style="width:100%;margin-top:10px;">
+        <thead><tr><th>التاريخ</th><th>البريد</th><th>الإجراء</th><th>التفاصيل</th></tr></thead>
+        <tbody id="logsTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycby2r_UOEoYhn70273JV9RuWq98acn5AV4lU49P1ad7eFPb-7vdhWS-7B0EB3SsTpjXW-g/exec';
+let usersData = [];
+let allApps = [];
+let currentUserForApps = null;
+
+function showMessage(message, isSuccess = true) {
+  const box = document.getElementById('messageBox');
+  box.className = isSuccess ? 'success' : 'error';
+  box.innerText = message;
+  box.style.display = 'block';
+  setTimeout(() => { box.style.display = 'none'; }, 3500);
+}
+
+async function fetchUsers() {
+  try {
+    const res = await fetch(`${API_URL}?resource=users&method=get`);
+    const data = await res.json();
+    if (data.success && data.data) {
+      usersData = data.data;
+      populateTable(usersData);
+      populateMainUserSelect();
+    } else {
+      showMessage('خطأ: ' + (data.error || data.message), false);
+    }
+  } catch {
+    showMessage('فشل الاتصال بالخادم', false);
+  }
+}
+
+async function fetchAllApps() {
+  try {
+    const res = await fetch(`${API_URL}?resource=apps&method=get`);
+    const data = await res.json();
+    if (data.success && data.data) {
+      allApps = data.data.filter(a => a.Active == 1 || a.Active == "1");
+    }
+  } catch {}
+}
+
+function populateTable(users) {
+  const tbody = document.getElementById('usersTableBody');
+  tbody.innerHTML = '';
+  users.forEach((u, idx) => {
+    const status = (u.active == 1 || u.active == "1") ? "نشط" : "غير نشط";
+    tbody.innerHTML += `
+      <tr>
+        <td>${u.id || idx+1}</td>
+        <td>${u.name || ''}</td>
+        <td>${u.email || ''}</td>
+        <td>${u.username || ''}</td>
+        <td>
+          <select onchange="updateUserField('${u.username}','role',this.value)">
+            <option value="user"${u.role==='user'?' selected':''}>مستخدم</option>
+            <option value="admin"${u.role==='admin'?' selected':''}>أدمن</option>
+          </select>
+        </td>
+        <td>
+          <select onchange="updateUserField('${u.username}','active',this.value)">
+            <option value="1"${u.active==1||u.active=="1"?' selected':''}>نشط</option>
+            <option value="0"${u.active==0||u.active=="0"?' selected':''}>غير نشط</option>
+          </select>
+        </td>
+        <td>${u.dateRegistered ? u.dateRegistered.split('T')[0] : '-'}</td>
+        <td>
+          <button class="action-btn follower-btn" onclick="showFollowers('${u.username}')">تابعين</button>
+          <button class="action-btn apps-btn" onclick="showApps('${u.username}')">تطبيقات</button>
+          <button class="action-btn delete-btn" onclick="deleteUser('${u.username}')">حذف</button>
+        </td>
+      </tr>
+    `;
+  });
+  document.getElementById('usersTable').style.display = users.length ? 'table' : 'none';
+}
+
+function filterTable() {
+  const value = document.getElementById('searchBar').value.trim().toLowerCase();
+  if (!value) {
+    populateTable(usersData);
+    return;
+  }
+  const filtered = usersData.filter(u =>
+    (u.name && u.name.toLowerCase().includes(value)) ||
+    (u.email && u.email.toLowerCase().includes(value)) ||
+    (u.username && u.username.toLowerCase().includes(value))
+  );
+  populateTable(filtered);
+}
+
+// ========== إضافة مستخدم ==========
+function showAddUserForm() {
+  document.getElementById('addUserForm').style.display = 'block';
+  document.getElementById('addUserMessage').innerText = '';
+  document.getElementById('name').value = '';
+  document.getElementById('email').value = '';
+  document.getElementById('username').value = '';
+  document.getElementById('password').value = '';
+  document.getElementById('role').value = 'user';
+  document.getElementById('followersInputs').innerHTML = '';
+}
+function hideAddUserForm() {
+  document.getElementById('addUserForm').style.display = 'none';
+}
+function addFollowerInput() {
+  const followersInputs = document.getElementById('followersInputs');
+  const idx = followersInputs.children.length;
+  followersInputs.innerHTML += `
+    <div style="margin-bottom:6px;">
+      <input type="text" placeholder="اسم التابع" id="followerName${idx}" style="width:45%;" />
+      <input type="password" placeholder="كلمة المرور" id="followerPassword${idx}" style="width:45%;" />
+    </div>
+  `;
+}
+async function registerUser() {
+  const name = document.getElementById('name').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+  const role = document.getElementById('role').value;
+  const msgBox = document.getElementById('addUserMessage');
+  msgBox.style.color = "red";
+  if (!name||!email||!username||!password) {
+    msgBox.innerText = 'جميع الحقول مطلوبة';
+    return;
+  }
+  if (usersData.some(u => u.username === username)) {
+    msgBox.innerText = 'اسم المستخدم مستخدم بالفعل!';
+    return;
+  }
+  msgBox.innerText = "جاري الإضافة...";
+  const followersInputs = document.getElementById('followersInputs').children;
+  let followers = [];
+  for (let i=0; i<followersInputs.length; i++) {
+    const fname = document.getElementById('followerName'+i).value.trim();
+    const fpass = document.getElementById('followerPassword'+i).value.trim();
+    if (fname && fpass) followers.push({ followerName: fname, followerPassword: fpass });
+  }
+  try {
+    const res = await fetch(API_URL + "?resource=users&method=add", {
+      method: 'POST',
+      body: JSON.stringify({
+        name, email, username, password, role,
+        active: 1,
+        dateRegistered: new Date().toISOString(),
+        createdAt: new Date().toISOString()
+      }),
+      headers: { "Content-Type": "application/json" }
+    });
+    const data = await res.json();
+    if (data.success) {
+      for (let f of followers) {
+        await fetch(API_URL + "?resource=followers&method=add", {
+          method: 'POST',
+          body: JSON.stringify({
+            username,
+            followerName: f.followerName,
+            followerPassword: f.followerPassword,
+            createdAt: new Date().toISOString()
+          }),
+          headers: { "Content-Type": "application/json" }
+        });
+      }
+      msgBox.style.color = "green";
+      msgBox.innerText = "تمت إضافة المستخدم بنجاح!";
+      hideAddUserForm();
+      fetchUsers();
+      showMessage("تمت إضافة المستخدم بنجاح!", true);
+    } else {
+      msgBox.innerText = data.error || "فشل في الإضافة!";
+    }
+  } catch {
+    msgBox.innerText = "فشل الاتصال بالخادم!";
+  }
+}
+
+// ========== إضافة تابع ==========
+function showAddFollowerForm() {
+  document.getElementById('addFollowerForm').style.display = 'block';
+  document.getElementById('addFollowerMessage').innerText = '';
+  document.getElementById('followerName').value = '';
+  document.getElementById('followerPassword').value = '';
+  populateMainUserSelect();
+}
+function hideAddFollowerForm() {
+  document.getElementById('addFollowerForm').style.display = 'none';
+}
+function populateMainUserSelect() {
+  const select = document.getElementById('mainUser');
+  if (!select) return;
+  select.innerHTML = usersData.map(u =>
+    `<option value="${u.username}">${u.name} (${u.username})</option>`
+  ).join('');
+}
+async function registerFollower() {
+  const username = document.getElementById('mainUser').value;
+  const followerName = document.getElementById('followerName').value.trim();
+  const followerPassword = document.getElementById('followerPassword').value.trim();
+  const msgBox = document.getElementById('addFollowerMessage');
+  msgBox.style.color = "red";
+  if (!username || !followerName || !followerPassword) {
+    msgBox.innerText = 'جميع الحقول مطلوبة';
+    return;
+  }
+  msgBox.innerText = "جاري الإضافة...";
+  try {
+    const res = await fetch(API_URL + "?resource=followers&method=add", {
+      method: 'POST',
+      body: JSON.stringify({
+        username, followerName, followerPassword,
+        createdAt: new Date().toISOString()
+      }),
+      headers: { "Content-Type": "application/json" }
+    });
+    const data = await res.json();
+    if (data.success) {
+      msgBox.style.color = "green";
+      msgBox.innerText = "تمت إضافة التابع بنجاح!";
+      hideAddFollowerForm();
+      showMessage("تمت إضافة التابع بنجاح!", true);
+    } else {
+      msgBox.innerText = data.error || "فشل في الإضافة!";
+    }
+  } catch {
+    msgBox.innerText = "فشل الاتصال بالخادم!";
+  }
+}
+
+// ========== تحديث وحذف ==========
+async function updateUserField(username, field, value) {
+  if (!username || !field) return;
+  if (field === 'active') value = value === "1" ? 1 : 0;
+  try {
+    const res = await fetch(`${API_URL}?resource=users&method=update`, {
+      method: 'POST',
+      body: JSON.stringify({ username, [field]: value, updatedAt: new Date().toISOString() }),
+      headers: { "Content-Type": "application/json" }
+    });
+    const result = await res.json();
+    if (!result.success) showMessage('خطأ تحديث: ' + (result.error || result.message), false);
+    else showMessage('تم تحديث المستخدم بنجاح');
+  } catch {
+    showMessage('فشل الاتصال بالخادم', false);
+  }
+}
+async function deleteUser(username) {
+  if (!confirm(`هل أنت متأكد من حذف "${username}"؟`)) return;
+  try {
+    const res = await fetch(`${API_URL}?resource=users&method=delete`, {
+      method: 'POST',
+      body: JSON.stringify({ username }),
+      headers: { "Content-Type": "application/json" }
+    });
+    const result = await res.json();
+    if (result.success) { fetchUsers(); showMessage('تم الحذف بنجاح'); }
+    else showMessage('خطأ حذف: ' + (result.error || result.message), false);
+  } catch {
+    showMessage('فشل الاتصال بالخادم', false);
+  }
+}
+
+// ========== التابعين ==========
+async function showFollowers(username) {
+  document.getElementById('followersUsername').innerText = username;
+  const list = document.getElementById('followersList');
+  list.innerHTML = '<li>...جاري التحميل</li>';
+  document.getElementById('followersModal').style.display = 'flex';
+  try {
+    const res = await fetch(`${API_URL}?resource=followers&method=get&filter=username:${encodeURIComponent(username)}`);
+    const data = await res.json();
+    if (data.success && data.data && data.data.length) {
+      list.innerHTML = data.data.map(f => `<li>👤 <b>${f.followerName}</b> - التطبيقات: ${parseAppsNames(f.followerApps)}</li>`).join('');
+    } else {
+      list.innerHTML = '<li>لا يوجد تابعين لهذا المستخدم</li>';
+    }
+  } catch {
+    list.innerHTML = '<li>فشل في جلب التابعين</li>';
+  }
+}
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+// ========== التطبيقات ==========
+async function showApps(username) {
+  await fetchAllApps();
+  currentUserForApps = username;
+  document.getElementById('appsUsername').innerText = username;
+  const user = usersData.find(u => u.username === username);
+  let allowedApps = [];
+  try {
+    allowedApps = JSON.parse(user.allowedApps);
+  } catch {
+    if (user.allowedApps && typeof user.allowedApps === "string")
+      allowedApps = user.allowedApps.split(',').map(a => a.trim()).filter(Boolean);
+  }
+  const appsList = document.getElementById('appsList');
+  appsList.innerHTML = allApps.map(app =>
+    `<label>
+      <input type="checkbox" name="apps" value="${app.AppID}" ${allowedApps.includes(app.AppID) ? 'checked' : ''}>
+      ${app.Name_AR || app.Name_EN}
+    </label>`
+  ).join('');
+  document.getElementById('appsModal').style.display = 'flex';
+}
+
+document.getElementById('appsForm').onsubmit = async function(e) {
+  e.preventDefault();
+  const checked = Array.from(document.querySelectorAll('#appsList input[name="apps"]:checked')).map(cb => cb.value);
+  if (!currentUserForApps) return;
+  try {
+    const res = await fetch(`${API_URL}?resource=users&method=update`, {
+      method: 'POST',
+      body: JSON.stringify({ username: currentUserForApps, allowedApps: JSON.stringify(checked), updatedAt: new Date().toISOString() }),
+      headers: { "Content-Type": "application/json" }
+    });
+    const result = await res.json();
+    if (result.success) {
+      showMessage('تم تحديث التطبيقات بنجاح');
+      fetchUsers();
+      closeModal('appsModal');
+    } else {
+      showMessage('خطأ في تحديث التطبيقات', false);
+    }
+  } catch {
+    showMessage('فشل الاتصال بالخادم', false);
+  }
+};
+
+function parseAppsNames(appsStr) {
+  if (!appsStr) return '-';
+  let arr = [];
+  try {
+    arr = JSON.parse(appsStr);
+  } catch {
+    arr = appsStr.split(',').map(a => a.trim()).filter(Boolean);
+  }
+  if (!arr.length) return '-';
+  return arr.map(id => {
+    const app = allApps.find(a => a.AppID === id);
+    return app ? (app.Name_AR || app.Name_EN) : id;
+  }).join(', ');
+}
+
+// ========== التقارير ==========
+async function showLogs() {
+  document.getElementById('logsModal').style.display = 'flex';
+  const tbody = document.getElementById('logsTableBody');
+  tbody.innerHTML = '<tr><td colspan="4">...جاري التحميل</td></tr>';
+  try {
+    const res = await fetch(`${API_URL}?resource=logs&method=get&sortBy=timestamp&sortOrder=desc&pageSize=50`);
+    const data = await res.json();
+    if (data.success && data.data && data.data.length) {
+      tbody.innerHTML = data.data.map(log =>
+        `<tr>
+          <td>${log.timestamp ? log.timestamp.split('T')[0] : '-'}</td>
+          <td>${log.email || '-'}</td>
+          <td>${log.action || '-'}</td>
+          <td>${log.details || '-'}</td>
+        </tr>`
+      ).join('');
+    } else {
+      tbody.innerHTML = '<tr><td colspan="4">لا توجد تقارير</td></tr>';
+    }
+  } catch {
+    tbody.innerHTML = '<tr><td colspan="4">فشل في جلب التقارير</td></tr>';
+  }
+}
+
+window.onload = async function() {
+  await fetchAllApps();
+  fetchUsers();
+};
+</script>
+</body>
+</html>

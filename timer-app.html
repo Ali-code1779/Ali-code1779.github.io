@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>مؤقت ومنبه للتشغيل والعمليات - علي محفوظ</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script defer src="script.js"></script>
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            background-color: #f0f2f5;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #fff;
+            border-right: 1px solid #ddd;
+            flex-shrink: 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background-color: #ff6347; /* تغيير اللون هنا */
+            color: white;
+            width: calc(100% - 290px);
+            margin-left: 10px;
+            position: fixed;
+            top: 0;
+            z-index: 1000;
+        }
+        .main-content {
+            flex: 1;
+            padding: 10px;
+            margin-top: 60px;
+            margin-left: 250px;
+            overflow-y: auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .app-card {
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s;
+            border: none;
+            text-align: center;
+            width: calc(55.43% - 30px);
+            min-width: 100px;
+            max-width: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .app-card:hover {
+            background-color: #f1f1f1;
+            animation: pulse 0.5s infinite;
+        }
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        .app-card h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .datetime span {
+            margin-right: 15px;
+            font-size: 14px;
+            color: #555;
+        }
+        .language-selector {
+            display: flex;
+            align-items: center;
+        }
+        .language-selector label {
+            margin-right: 5px;
+            font-size: 14px;
+            color: #555;
+        }
+        .language-selector select {
+            padding: 5px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <!-- الشريط الجانبي -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2 id="siteTitle">موقع علي محفوظ</h2>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.html"><i class="fas fa-home"></i> <span id="homeText">الرئيسية</span></a></li>
+                <li><a href="apps.html"><i class="fas fa-th"></i> <span id="appsText">التطبيقات</span></a></li>
+                <li><a href="#"><i class="fas fa-info-circle"></i> <span id="aboutText">حولنا</span></a></li>
+                <li><a href="#"><i class="fas fa-envelope"></i> <span id="contactText">تواصل معنا</span></a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- الشريط العلوي -->
+    <header class="topbar">
+        <div class="datetime">
+            <span id="date"></span>
+            <span id="time"></span>
+            <span id="day"></span>
+        </div>
+        <div class="language-selector">
+            <label for="language" id="languageLabel">اللغة:</label>
+            <select id="language" onchange="updateLanguage()">
+                <option value="ar">العربية</option>
+                <option value="en">English</option>
+                <option value="fr">Français</option>
+            </select>
+        </div>
+    </header>
+
+    <!-- المحتوى الرئيسي -->
+    <div class="main-content">
+        <div class="app-card" onclick="navigateTo('attendance-management.html')">
+            <h2 id="app1Title">👨‍💼 نظام إدارة الحضور والانصراف للموظفين</h2>
+            <p id="app1Description">تطبيق لإدارة حضور وانصراف الموظفين بسهولة وكفاءة.</p>
+        </div>
+        <div class="app-card" onclick="navigateTo('performance-tracking.html')">
+
+            <h2 id="app2Title">📈 نظام تتبع الأداء للموظفين</h2>
+            <p id="app2Description">تتبع أداء الموظفين وتحليل البيانات لتحقيق أهداف الأداء.</p>
+        </div>
+
+        <div class="app-card" onclick="navigateTo('prep-table-timer.html')">
+            <h2 id="app3Title">🕒 نظام مؤقت طاولة التحضير</h2>
+            <p id="app3Description">ضبط مؤقتات لطاولات التحضير وإدارة الأوقات بكفاءة.</p>
+        </div>
+
+        <div class="app-card" onclick="navigateTo('prepared-salad-timer.html')">
+            <h2 id="app4Title">🥗 نظام مؤقت السلطة المحضرة</h2>
+            <p id="app4Description">إدارة مؤقتات السلطات المحضرة لضمان جودة الطعام.</p>
+        </div>
+
+        <div class="app-card" onclick="navigateTo('inventory-shelf-life-timer.html')">
+            <h2 id="app5Title">📅 نظام مؤقت صلاحيات المخزون</h2>
+            <p id="app5Description">ضبط مؤقتات صلاحية المنتجات في المخزون.</p>
+        </div>
+
+        <div class="app-card" onclick="navigateTo('restaurant-license-timer.html')">
+            <h2 id="app6Title">🍽️ نظام مؤقت تراخيص المطعم</h2>
+            <p id="app6Description">متابعة وتجديد تراخيص المطعم بسهولة.</p>
+        </div>
+
+        <div class="app-card" onclick="navigateTo('employee-docs-timer.html')">
+            <h2 id="app7Title">📂 نظام مؤقت أوراق ومستندات الموظفين النظامية</h2>
+            <p id="app7Description">إدارة المستندات والأوراق النظامية للموظفين بمؤقتات محددة.</p>
+        </div>
+
+        <div class="app-card" onclick="navigateTo('order-schedule-timer.html')">
+            <h2 id="app8Title">🛒 مؤقت مواعيد الطلبيات</h2>
+            <p id="app8Description">ضبط وإدارة أوقات الطلبيات لضمان توصيلها في الوقت المحدد.</p>
+        </div>
+
+        <div class="app-card" onclick="navigateTo('service-speed-timer.html')">
+            <h2 id="app9Title">🚀 مؤقت حساب سرعة الخدمة</h2>
+            <p id="app9Description">تطبيق لقياس سرعة الخدمة وتقديم التحذيرات والتنبيهات عند تجاوز الوقت المحدد للخدمة.</p>
+        </div>
+
+        <div class="app-card" onclick="navigateTo('service-apps.html')">
+            <h2 id="app10Title">🛠️ تطبيقات خدمية</h2>
+            <p id="app10Description">مجموعة من التطبيقات الخدمية لتسهيل العمليات الإدارية.</p>
+        </div>
+
+        <div class="app-card" onclick="navigateTo('company-shortcuts.html')">
+            <h2 id="app11Title">🌐 اختصارات تطبيقات الشركة</h2>
+            <p id="app11Description">الوصول السريع لمواقع وتطبيقات الشركة عبر اختصارات منظمة.</p>
+        </div>
+    </div>
+
+    <script>
+        // إعداد محتويات الترجمة
+        const translations = {
+            ar: {
+                title: "مؤقت ومنبه للتشغيل والعمليات",
+                homeText: "الرئيسية",
+                appsText: "التطبيقات",
+                aboutText: "حولنا",
+                contactText: "تواصل معنا",
+                languageLabel: "اللغة:",
+                app1Title: "👨‍💼 نظام إدارة الحضور والانصراف للموظفين",
+                app1Description: "تطبيق لإدارة حضور وانصراف الموظفين بسهولة وكفاءة.",
+                app2Title: "📈 نظام تتبع الأداء للموظفين",
+                app2Description: "تتبع أداء الموظفين وتحليل البيانات لتحقيق أهداف الأداء.",
+                app3Title: "🕒 نظام مؤقت طاولة التحضير",
+                app3Description: "ضبط مؤقتات لطاولات التحضير وإدارة الأوقات بكفاءة.",
+                app4Title: "🥗 نظام مؤقت السلطة المحضرة",
+                app4Description: "إدارة مؤقتات السلطات المحضرة لضمان جودة الطعام.",
+                app5Title: "📅 نظام مؤقت صلاحيات المخزون",
+                app5Description: "ضبط مؤقتات صلاحية المنتجات في المخزون.",
+                app6Title: "🍽️ نظام مؤقت تراخيص المطعم",
+                app6Description: "متابعة وتجديد تراخيص المطعم بسهولة.",
+                app7Title: "📂 نظام مؤقت أوراق ومستندات الموظفين النظامية",
+                app7Description: "إدارة المستندات والأوراق النظامية للموظفين بمؤقتات محددة.",
+                app8Title: "🛒 مؤقت مواعيد الطلبيات",
+                app8Description: "ضبط وإدارة أوقات الطلبيات لضمان توصيلها في الوقت المحدد.",
+                app9Title: "🚀 مؤقت حساب سرعة الخدمة",
+                app9Description: "تطبيق لقياس سرعة الخدمة وتقديم التحذيرات والتنبيهات عند تجاوز الوقت المحدد للخدمة.",
+                app10Title: "🛠️ تطبيقات خدمية",
+                app10Description: "مجموعة من التطبيقات الخدمية لتسهيل العمليات الإدارية.",
+                app11Title: "🌐 اختصارات تطبيقات الشركة",
+                app11Description: "الوصول السريع لمواقع وتطبيقات الشركة عبر اختصارات منظمة."
+            },
+            en: {
+                title: "Timers and Alarms for Operations Management",
+                homeText: "Home",
+                appsText: "Applications",
+                aboutText: "About Us",
+                contactText: "Contact Us",
+                languageLabel: "Language:",
+                app1Title: "👨‍💼 Employee Attendance Management System",
+                app1Description: "Application to manage employee attendance and check-ins efficiently.",
+                app2Title: "📈 Employee Performance Tracking System",
+                app2Description: "Track employee performance and analyze data to achieve performance goals.",
+                app3Title: "🕒 Prep Table Timer System",
+                app3Description: "Set timers for preparation tables and manage times effectively.",
+                app4Title: "🥗 Prepared Salad Timer System",
+                app4Description: "Manage prepared salad timers to ensure food quality.",
+                app5Title: "📅 Inventory Shelf Life Timer System",
+                app5Description: "Set shelf life timers for products in inventory.",
+                app6Title: "🍽️ Restaurant License Timer System",
+                app6Description: "Easily track and renew restaurant licenses.",
+                app7Title: "📂 Employee Regulatory Document Timer System",
+                app7Description: "Manage regulatory documents for employees with defined timers.",
+                app8Title: "🛒 Order Schedule Timer",
+                app8Description: "Manage order times to ensure timely deliveries.",
+                app9Title: "🚀 Service Speed Timer",
+                app9Description: "App to measure service speed and alert when service time is exceeded.",
+                app10Title: "🛠️ Service Applications",
+                app10Description: "A suite of service apps to facilitate administrative processes.",
+                app11Title: "🌐 Company Applications Shortcuts",
+                app11Description: "Quick access to company sites and apps via organized shortcuts."
+            }
+        };
+
+        // تحديث اللغة
+        function updateLanguage() {
+            const selectedLang = document.getElementById('language').value;
+            const trans = translations[selectedLang];
+
+            document.title = trans.title;
+            document.getElementById('homeText').textContent = trans.homeText;
+            document.getElementById('appsText').textContent = trans.appsText;
+            document.getElementById('aboutText').textContent = trans.aboutText;
+            document.getElementById('contactText').textContent = trans.contactText;
+            document.getElementById('languageLabel').textContent = trans.languageLabel;
+
+            for (let i = 1; i <= 11; i++) {
+                document.getElementById(`app${i}Title`).textContent = trans[`app${i}Title`];
+                document.getElementById(`app${i}Description`).textContent = trans[`app${i}Description`];
+            }
+        }
+
+        // التنقل بين الصفحات
+        function navigateTo(page) {
+            window.location.href = page;
+        }
+
+        // إعداد التاريخ والوقت
+        function updateTime() {
+            const date = new Date();
+            const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+            const day = days[date.getDay()];
+            const time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const dateStr = date.toLocaleDateString();
+
+            document.getElementById('date').textContent = dateStr;
+            document.getElementById('time').textContent = time;
+            document.getElementById('day').textContent = day;
+        }
+
+        setInterval(updateTime, 1000);
+        updateTime();
+    </script>
+</body>
+</html>
+

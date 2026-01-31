@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <title>تسجيل مستخدم جديد</title>
+  <style>
+    body { font-family: Arial, sans-serif; direction: rtl; text-align: center; margin-top: 50px; }
+    input, button { margin: 10px; padding: 10px; width: 280px; }
+    .status { color: red; margin-top: 15px; }
+  </style>
+</head>
+<body>
+
+  <h2>تسجيل مستخدم جديد</h2>
+
+  <input type="text" id="name" placeholder="الاسم الكامل" /><br />
+  <input type="email" id="email" placeholder="البريد الإلكتروني" /><br />
+  <input type="text" id="username" placeholder="اسم المستخدم" /><br />
+  <input type="password" id="password" placeholder="كلمة المرور" /><br />
+  <button onclick="register()">تسجيل</button>
+
+  <p id="status" class="status"></p>
+
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbzOJBCoRxX0pVRAED1J683zdfkFlIkpwOotpgBE-7VnL_y6MkKiYuO4LS555rgD-ubAcg/exec";
+
+    function register() {
+      const name = document.getElementById("name").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const status = document.getElementById("status");
+      status.innerText = "";
+
+      if (!name || !email || !username || !password) {
+        status.innerText = "جميع الحقول مطلوبة للتسجيل.";
+        return;
+      }
+
+      const url = `${scriptURL}?method=register&name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`;
+
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            status.style.color = "green";
+            status.innerText = "تم التسجيل بنجاح. سيتم توجيهك لصفحة تسجيل الدخول...";
+            setTimeout(() => {
+              window.location.href = "login.html";
+            }, 2000);
+          } else {
+            status.style.color = "red";
+            status.innerText = data.message || "فشل التسجيل.";
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          status.style.color = "red";
+          status.innerText = "حدث خطأ أثناء الاتصال بالخادم.";
+        });
+    }
+  </script>
+
+</body>
+</html>

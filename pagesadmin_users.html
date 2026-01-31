@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>المستخدمين - لوحة تحكم الأدمن</title>
+  <style>
+    /* ننسخ أنماط القالب الأساسي بالإضافة لأنماط صفحة المستخدمين */
+    body {
+      margin: 0; 
+      font-family: Arial, sans-serif;
+      direction: rtl;
+      background: #f9fafb;
+    }
+    header {
+      background: #007BFF;
+      color: white;
+      padding: 15px 20px;
+      font-size: 24px;
+      text-align: center;
+    }
+    #sidebar {
+      width: 220px;
+      background: #222d32;
+      position: fixed;
+      top: 60px;
+      bottom: 0;
+      color: white;
+      padding-top: 20px;
+    }
+    #sidebar a {
+      color: white;
+      padding: 10px 20px;
+      display: block;
+      text-decoration: none;
+    }
+    #sidebar a:hover {
+      background: #1e282c;
+    }
+    main {
+      margin-right: 220px;
+      padding: 20px;
+      min-height: calc(100vh - 60px);
+    }
+    footer {
+      background: #007BFF;
+      color: white;
+      text-align: center;
+      padding: 10px 20px;
+      position: fixed;
+      bottom: 0;
+      right: 220px;
+      left: 0;
+    }
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      padding: 8px 15px;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      opacity: 0.85;
+    }
+    .add-btn {
+      background-color: #28a745;
+      color: white;
+      float: left;
+      margin-bottom: 15px;
+    }
+    .edit-btn {
+      background-color: #ffc107;
+      color: #333;
+      margin: 0 3px;
+      padding: 5px 10px;
+    }
+    .delete-btn {
+      background-color: #dc3545;
+      color: white;
+      margin: 0 3px;
+      padding: 5px 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+      font-size: 14px;
+    }
+    th {
+      background-color: #007BFF;
+      color: white;
+    }
+    tr:hover {
+      background-color: #f1f5f9;
+    }
+    #loading {
+      font-weight: bold;
+      color: #555;
+      margin-top: 20px;
+      clear: both;
+    }
+    #addUserForm {
+      display: none;
+      margin-top: 20px;
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 400px;
+      clear: both;
+    }
+    #addUserForm label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    #addUserForm input,
+    #addUserForm select {
+      width: 100%;
+      padding: 6px 8px;
+      margin-top: 4px;
+      box-sizing: border-box;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    #addUserForm button {
+      margin-top: 10px;
+      margin-right: 10px;
+    }
+    #addUserMessage {
+      margin-top: 10px;
+      color: red;
+      font-weight: bold;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  لوحة تحكم الأدمن
+</header>
+
+<div id="sidebar">
+  <a href="admin_dashboard.html">الرئيسية</a>
+  <a href="admin_users.html" style="background:#1e282c;">المستخدمين</a>
+  <a href="#">الإعدادات</a>
+  <a href="#">التقارير</a>
+</div>
+
+<main>
+  <h1>المستخدمين</h1>
+  <button class="add-btn" onclick="showAddUserForm()">➕ إضافة مستخدم جديد</button>
+
+  <div id="loading">...جاري تحميل البيانات</div>
+
+  <table id="usersTable" style="display:none;">
+    <thead>
+      <tr>
+        <th>الرقم</th>
+        <th>الاسم</th>
+        <th>البريد الإلكتروني</th>
+        <th>اسم المستخدم</th>
+        <th>الدور</th>
+        <th>الحالة</th>
+        <th>تاريخ التسجيل</th>
+        <th>الإجراءات</th>
+      </tr>
+    </thead>
+    <tbody id="usersTableBody"></tbody>
+  </table>
+
+  <!-- نموذج إضافة مستخدم -->
+  <div id="addUserForm">
+    <h3>إضافة مستخدم جديد</h3>
+    <label>الاسم:
+      <input type="text" id="name" />
+    </label>
+    <label>البريد الإلكتروني:
+      <input type="email" id="email" />
+    </label>
+    <label>اسم المستخدم:
+      <input type="text" id="username" />
+    </label>
+    <label>كلمة المرور:
+      <input type="password" id="password" />
+    </label>
+    <label>الدور:
+      <select id="role">
+        <option value="user">مستخدم</option>
+        <option value="admin">أدمن</option>
+      </select>
+    </label>
+    <button onclick="registerUser()">تسجيل</button>
+    <button onclick="hideAddUserForm()">إلغاء</button>
+    <div id="addUserMessage"></div>
+  </div>
+</main>
+
+<footer>
+  &copy; 2025 حقوق النشر محفوظة
+</footer>
+
+<script>
+  const API_URL = 'https://script.google.com/macros/s/AKfycbxt6JPEYTUsfOpt8ChAjZooHzZesQSMXa7kppn92TkutEOfxXFIRkqUxmt6k7EkLc3eVA/exec';
+
+  async function fetchUsers() {
+    try {
+      document.getElementById('loading').style.display = 'block';
+      const res = await fetch(`${API_URL}?method=get`);
+      const data = await res.json();
+      document.getElementById('loading').style.display = 'none';
+
+      if (data.success) {
+        populateTable(data.users);
+      } else {
+        alert('خطأ في جلب المستخدمين: ' + data.message);
+      }
+    } catch (error) {
+      document.getElementById('loading').style.display = 'none';
+      alert('فشل الاتصال بالخادم');
+      console.error(error);
+    }
+  }
+
+  function populateTable(users) {
+    const tbody = document.getElementById('usersTableBody');
+    tbody.innerHTML = '';
+    users.forEach((user, index) => {
+      const tr = document.createElement('tr');
+
+      tr.innerHTML = `
+        <td>${user.id}</td>
+        <td>${user.name}</td>
+        <td>${user.email}</td>
+        <td>${user.username}</td>
+        <td>${user.role}</td>
+        <td>${user.active}</td>
+        <td>${user.dateRegistered}</td>
+        <td>
+          <button class="edit-btn" onclick="editUserRole('${user.username}', '${user.role}')">تغيير الدور</button>
+          <button class="delete-btn" onclick="deleteUser('${user.username}')">حذف</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+    document.getElementById('usersTable').style.display = 'table';
+  }
+
+  async function editUserRole(username, currentRole) {
+    const newRole = prompt(`تغيير الدور للمستخدم ${username} (admin أو user)`, currentRole);
+    if (newRole !== 'admin' && newRole !== 'user') {
+      alert('يرجى إدخال admin أو user فقط.');
+      return;
+    }
+    try {
+      const res = await fetch(`${API_URL}?method=updateRole&username=${encodeURIComponent(username)}&role=${encodeURIComponent(newRole)}`);
+      const data = await res.json();
+      if (data.success) {
+        alert('تم تحديث الدور بنجاح');
+        fetchUsers();
+      } else {
+        alert('خطأ: ' + data.message);
+      }
+    } catch (error) {
+      alert('فشل الاتصال بالخادم');
+      console.error(error);
+    }
+  }
+
+  function deleteUser(username) {
+    alert('ميزة الحذف غير مفعلة في API، يمكن تطويرها لاحقًا.');
+  }
+
+  function showAddUserForm() {
+    document.getElementById('addUserForm').style.display = 'block';
+  }
+  function hideAddUserForm() {
+    document.getElementById('addUserForm').style.display = 'none';
+    clearAddUserForm();
+  }
+  function clearAddUserForm() {
+    document.getElementById('name').value = '';
+    document.getElementById('email').value = '';
+    document.getElementById('username').value = '';
+    document.getElementById('password').value = '';
+    document.getElementById('role').value = 'user';
+    document.getElementById('addUserMessage').innerText = '';
+  }
+
+  async function registerUser() {
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const role = document.getElementById('role').value;
+
+    if (!name || !email || !username || !password) {
+      document.getElementById('addUserMessage').innerText = 'جميع الحقول مطلوبة';
+      return;
+    }
+
+    try {
+      const url = `${API_URL}?method=register&name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&role=${encodeURIComponent(role)}`;
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (data.success) {
+        alert('تم تسجيل المستخدم بنجاح');
+        hideAddUserForm();
+        fetchUsers();
+      } else {
+        document.getElementById('addUserMessage').innerText = data.message || 'خطأ في التسجيل';
+      }
+    } catch (error) {
+      document.getElementById('addUserMessage').innerText = 'فشل الاتصال بالخادم';
+      console.error(error);
+    }
+  }
+
+  fetchUsers();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>المستخدمين - لوحة تحكم الأدمن</title>
+  <style>
+    body { font-family: 'Cairo', Arial, sans-serif; background: #f9fafb; margin: 0; padding: 20px; direction: rtl; }
+    h1 { color: #007BFF; }
+    .report-bar {background:#fff; border-radius:8px; box-shadow:0 2px 10px #0001; padding:10px 15px; margin-bottom:15px; display:flex; gap:18px; flex-wrap:wrap;}
+    .report-item {font-size:16px; color:#222;}
+    .report-item strong {color:#007BFF;}
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 0 10px rgba(0,0,0,0.08); margin-top: 15px;}
+    th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: center;}
+    th { background-color: #007BFF; color: white;}
+    tr:hover { background-color: #f1f5f9;}
+    button { padding: 6px 12px; border: none; border-radius: 5px; cursor: pointer; margin: 0 2px; font-size: 15px;}
+    .edit-btn { background-color: #ffc107; color: #333;}
+    .delete-btn { background-color: #dc3545; color: white;}
+    .toggle-btn { background-color: #17a2b8; color: white;}
+    .add-btn { margin-bottom: 15px; background-color: #28a745; color: white; padding: 9px 18px; border-radius: 5px; cursor: pointer; font-size: 16px;}
+    #loading { color: #555; font-weight: bold; margin-top: 20px;}
+    #searchInput { width: 100%; max-width: 350px; padding: 9px; border-radius: 5px; border: 1px solid #ccc; font-size: 17px; margin-bottom: 18px; display: block;}
+    .search-container { max-width: 350px; margin-bottom: 15px;}
+    .modal-bg { position: fixed; top:0; left:0; width:100vw; height:100vh; background: rgba(0,0,0,0.08); z-index:1000; display:none; justify-content:center; align-items:center;}
+    .modal { background: #fff; padding: 22px 18px; border-radius: 10px; min-width: 320px; box-shadow: 0 4px 24px #0001; position: relative;}
+    .modal-close { position: absolute; top: 7px; left: 11px; font-size: 21px; color: #888; cursor: pointer;}
+    .status-dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-left: 4px; vertical-align: middle;}
+    .status-dot.active { background: #28a745; }
+    .status-dot.inactive { background: #dc3545; }
+    .hint { color: #888; font-size: 12px; margin-top: 2px;}
+    .actions-cell { min-width: 130px;}
+    .lang-switch { float:left; margin-top:-10px;}
+    .lang-switch button {margin-left:5px; padding:3px 12px; border-radius:4px; border:none; cursor:pointer;}
+    .lang-switch .active {background:#007BFF; color:#fff;}
+  </style>
+</head>
+<body>
+  <div class="lang-switch">
+    <button onclick="switchLang('ar')" id="btnLangAr" class="active">العربية</button>
+    <button onclick="switchLang('en')" id="btnLangEn">English</button>
+  </div>
+  <h1 id="pageTitle">المستخدمين</h1>
+  <div class="report-bar" id="reportBar"></div>
+  <button class="add-btn" onclick="showUserModal()" id="btnAddUser">➕ إضافة مستخدم جديد</button>
+  <div class="search-container">
+    <input type="text" id="searchInput" placeholder="🔍 ابحث في جميع الحقول..." oninput="filterUsers()" />
+  </div>
+  <div id="loading">...جاري تحميل البيانات</div>
+  <table id="usersTable" style="display:none;">
+    <thead>
+      <tr>
+        <th id="thId">الرقم</th>
+        <th id="thName">الاسم</th>
+        <th id="thEmail">البريد الإلكتروني</th>
+        <th id="thUsername">اسم المستخدم</th>
+        <th id="thRole">الدور</th>
+        <th id="thActive">الحالة</th>
+        <th id="thDate">تاريخ التسجيل</th>
+        <th class="actions-cell" id="thActions">الإجراءات</th>
+      </tr>
+    </thead>
+    <tbody id="usersTableBody"></tbody>
+  </table>
+
+  <!-- نافذة (مودال) إضافة/تعديل مستخدم -->
+  <div class="modal-bg" id="userModalBg">
+    <div class="modal">
+      <span class="modal-close" onclick="hideUserModal()">&times;</span>
+      <h3 id="modalTitle">إضافة مستخدم جديد</h3>
+      <label id="lblName">الاسم:<br><input type="text" id="modalName" style="width:100%;" /></label><br><br>
+      <label id="lblEmail">البريد الإلكتروني:<br><input type="email" id="modalEmail" style="width:100%;" /></label><br><br>
+      <label id="lblUsername">اسم المستخدم:<br><input type="text" id="modalUsername" style="width:100%;" /></label><br><br>
+      <label id="lblPassword">كلمة المرور:<br><input type="password" id="modalPassword" style="width:100%;" /></label>
+      <div class="hint" id="passwordHint">* مطلوب فقط عند إضافة مستخدم جديد أو تغيير كلمة المرور</div><br>
+      <label id="lblRole">الدور:<br>
+        <select id="modalRole" style="width:100%;">
+          <option value="user" id="roleUser">مستخدم</option>
+          <option value="admin" id="roleAdmin">أدمن</option>
+        </select>
+      </label><br><br>
+      <label id="lblActive">الحالة:
+        <select id="modalActive" style="width:100%;">
+          <option value="1">نشط</option>
+          <option value="0">غير نشط</option>
+        </select>
+      </label><br><br>
+      <div id="modalMsg" style="color:red; margin-top:8px;"></div>
+      <br>
+      <button class="add-btn" style="width:100%;" onclick="submitUserModal()" id="btnSaveUser">حفظ</button>
+    </div>
+  </div>
+
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbzoHzecQ8bydUutlD_7OUWdiuxZBtBslHEC7Ty88qEul8fqltmqJe1R5fdEWO0fn78UxQ/exec';
+
+let allUsers = [];
+let editMode = false;
+let editUsername = null;
+let currentLang = 'ar';
+
+const labels = {
+  ar: {
+    pageTitle: "المستخدمين",
+    addUserBtn: "➕ إضافة مستخدم جديد",
+    loading: "...جاري تحميل البيانات",
+    thId: "الرقم",
+    thName: "الاسم",
+    thEmail: "البريد الإلكتروني",
+    thUsername: "اسم المستخدم",
+    thRole: "الدور",
+    thActive: "الحالة",
+    thDate: "تاريخ التسجيل",
+    thActions: "الإجراءات",
+    formTitleAdd: "إضافة مستخدم جديد",
+    formTitleEdit: "تعديل المستخدم",
+    labelName: "الاسم:",
+    labelEmail: "البريد الإلكتروني:",
+    labelUsername: "اسم المستخدم:",
+    labelPassword: "كلمة المرور:",
+    labelRole: "الدور:",
+    roleUser: "مستخدم",
+    roleAdmin: "أدمن",
+    btnSave: "حفظ",
+    hintPassword: "* مطلوب فقط عند إضافة مستخدم جديد أو تغيير كلمة المرور",
+    statusActive: "نشط",
+    statusInactive: "غير نشط",
+    edit: "تعديل",
+    delete: "حذف",
+    activate: "تفعيل",
+    deactivate: "إيقاف",
+    confirmDelete: "هل أنت متأكد أنك تريد حذف هذا المستخدم؟",
+    fillAll: "يرجى ملء جميع الحقول المطلوبة",
+    error: "حدث خطأ غير متوقع",
+    connectionFail: "فشل الاتصال بالخادم",
+    successAdd: "تمت الإضافة بنجاح",
+    successUpdate: "تم التحديث بنجاح",
+    successDelete: "تم الحذف بنجاح",
+    searchPlaceholder: "🔍 ابحث في جميع الحقول...",
+    reports: {
+      total: "إجمالي المستخدمين",
+      active: "النشطون",
+      admins: "الإداريون",
+      users: "المستخدمون",
+      lastReg: "آخر تسجيل"
+    }
+  },
+  en: {
+    pageTitle: "Users",
+    addUserBtn: "➕ Add New User",
+    loading: "...Loading data",
+    thId: "ID",
+    thName: "Name",
+    thEmail: "Email",
+    thUsername: "Username",
+    thRole: "Role",
+    thActive: "Status",
+    thDate: "Registered Date",
+    thActions: "Actions",
+    formTitleAdd: "Add New User",
+    formTitleEdit: "Edit User",
+    labelName: "Name:",
+    labelEmail: "Email:",
+    labelUsername: "Username:",
+    labelPassword: "Password:",
+    labelRole: "Role:",
+    roleUser: "User",
+    roleAdmin: "Admin",
+    btnSave: "Save",
+    hintPassword: "* Required only for new user or password change",
+    statusActive: "Active",
+    statusInactive: "Inactive",
+    edit: "Edit",
+    delete: "Delete",
+    activate: "Activate",
+    deactivate: "Deactivate",
+    confirmDelete: "Are you sure you want to delete this user?",
+    fillAll: "Please fill all required fields",
+    error: "Unexpected error occurred",
+    connectionFail: "Failed to connect to server",
+    successAdd: "Added successfully",
+    successUpdate: "Updated successfully",
+    successDelete: "Deleted successfully",
+    searchPlaceholder: "🔍 Search all fields...",
+    reports: {
+      total: "Total Users",
+      active: "Active",
+      admins: "Admins",
+      users: "Users",
+      lastReg: "Last Registered"
+    }
+  }
+};
+
+function switchLang(lang) {
+  currentLang = lang;
+  document.documentElement.lang = lang;
+  document.body.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  document.getElementById('btnLangAr').classList.toggle('active', lang === 'ar');
+  document.getElementById('btnLangEn').classList.toggle('active', lang === 'en');
+  setLabels();
+  renderTable(allUsers);
+  document.getElementById('searchInput').placeholder = labels[lang].searchPlaceholder;
+}
+
+function setLabels() {
+  const l = labels[currentLang];
+  document.getElementById('pageTitle').innerText = l.pageTitle;
+  document.getElementById('btnAddUser').innerText = l.addUserBtn;
+  document.getElementById('loading').innerText = l.loading;
+  document.getElementById('thId').innerText = l.thId;
+  document.getElementById('thName').innerText = l.thName;
+  document.getElementById('thEmail').innerText = l.thEmail;
+  document.getElementById('thUsername').innerText = l.thUsername;
+  document.getElementById('thRole').innerText = l.thRole;
+  document.getElementById('thActive').innerText = l.thActive;
+  document.getElementById('thDate').innerText = l.thDate;
+  document.getElementById('thActions').innerText = l.thActions;
+  document.getElementById('modalTitle').innerText = editMode ? l.formTitleEdit : l.formTitleAdd;
+  document.getElementById('lblName').childNodes[0].nodeValue = l.labelName;
+  document.getElementById('lblEmail').childNodes[0].nodeValue = l.labelEmail;
+  document.getElementById('lblUsername').childNodes[0].nodeValue = l.labelUsername;
+  document.getElementById('lblPassword').childNodes[0].nodeValue = l.labelPassword;
+  document.getElementById('lblRole').childNodes[0].nodeValue = l.labelRole;
+  document.getElementById('roleUser').innerText = l.roleUser;
+  document.getElementById('roleAdmin').innerText = l.roleAdmin;
+  document.getElementById('btnSaveUser').innerText = l.btnSave;
+  document.getElementById('passwordHint').innerText = l.hintPassword;
+}
+
+async function fetchUsers() {
+  document.getElementById('loading').style.display = 'block';
+  try {
+    const res = await fetch(`${API_URL}?resource=users&method=get&page=1&pageSize=1000`);
+    const data = await res.json();
+    document.getElementById('loading').style.display = 'none';
+    if (data.success) {
+      allUsers = data.data;
+      renderTable(allUsers);
+      renderReportBar();
+    } else {
+      alert(labels[currentLang].error);
+    }
+  } catch (e) {
+    document.getElementById('loading').style.display = 'none';
+    alert(labels[currentLang].connectionFail);
+  }
+}
+
+function renderReportBar() {
+  const l = labels[currentLang].reports;
+  const total = allUsers.length;
+  const active = allUsers.filter(u => u.active == 1 || u.active == '1').length;
+  const admins = allUsers.filter(u => u.role === 'admin').length;
+  const users = allUsers.filter(u => u.role === 'user').length;
+  const lastReg = allUsers.reduce((max, u) => u.dateRegistered && u.dateRegistered > max ? u.dateRegistered : max, '');
+  document.getElementById('reportBar').innerHTML = `
+    <span class="report-item">${l.total}: <strong>${total}</strong></span>
+    <span class="report-item">${l.active}: <strong>${active}</strong></span>
+    <span class="report-item">${l.admins}: <strong>${admins}</strong></span>
+    <span class="report-item">${l.users}: <strong>${users}</strong></span>
+    <span class="report-item">${l.lastReg}: <strong>${lastReg || '-'}</strong></span>
+  `;
+}
+
+function renderTable(users) {
+  const l = labels[currentLang];
+  const tbody = document.getElementById('usersTableBody');
+  tbody.innerHTML = '';
+  users.forEach(user => {
+    const isActive = user.active == 1 || user.active == '1';
+    const statusDot = `<span class="status-dot ${isActive ? 'active' : 'inactive'}"></span>`;
+    tbody.innerHTML += `
+      <tr>
+        <td>${user.id || ''}</td>
+        <td>${user.name || ''}</td>
+        <td>${user.email || ''}</td>
+        <td>${user.username || ''}</td>
+        <td>
+          <select onchange="changeUserRole('${user.username}', this.value)">
+            <option value="user" ${user.role === 'user' ? 'selected' : ''}>${l.roleUser}</option>
+            <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>${l.roleAdmin}</option>
+          </select>
+        </td>
+        <td>
+          ${statusDot}
+          <button class="toggle-btn" onclick="toggleUserActive('${user.username}', ${isActive ? 0 : 1})">
+            ${isActive ? l.deactivate : l.activate}
+          </button>
+        </td>
+        <td>${user.dateRegistered || ''}</td>
+        <td class="actions-cell">
+          <button class="edit-btn" onclick="showUserModal('${user.username}')">${l.edit}</button>
+          <button class="delete-btn" onclick="deleteUser('${user.username}')">${l.delete}</button>
+        </td>
+      </tr>
+    `;
+  });
+  document.getElementById('usersTable').style.display = users.length ? 'table' : 'none';
+}
+
+function filterUsers() {
+  const query = document.getElementById('searchInput').value.trim().toLowerCase();
+  if (!query) return renderTable(allUsers);
+  const filtered = allUsers.filter(user =>
+    Object.values(user).some(val =>
+      (val && val.toString().toLowerCase().includes(query))
+    )
+  );
+  renderTable(filtered);
+}
+
+// --- إضافة/تعديل مستخدم ---
+function showUserModal(username = null) {
+  editMode = !!username;
+  editUsername = username;
+  document.getElementById('modalMsg').innerText = '';
+  document.getElementById('userModalBg').style.display = 'flex';
+  const l = labels[currentLang];
+  document.getElementById('modalTitle').innerText = editMode ? l.formTitleEdit : l.formTitleAdd;
+  document.getElementById('passwordHint').style.display = editMode ? 'block' : 'none';
+  if (editMode) {
+    const user = allUsers.find(u => u.username === username);
+    document.getElementById('modalName').value = user.name || '';
+    document.getElementById('modalEmail').value = user.email || '';
+    document.getElementById('modalUsername').value = user.username || '';
+    document.getElementById('modalUsername').disabled = true;
+    document.getElementById('modalPassword').value = '';
+    document.getElementById('modalRole').value = user.role || 'user';
+    document.getElementById('modalActive').value = user.active || '1';
+  } else {
+    document.getElementById('modalName').value = '';
+    document.getElementById('modalEmail').value = '';
+    document.getElementById('modalUsername').value = '';
+    document.getElementById('modalUsername').disabled = false;
+    document.getElementById('modalPassword').value = '';
+    document.getElementById('modalRole').value = 'user';
+    document.getElementById('modalActive').value = '1';
+  }
+}
+
+function hideUserModal() {
+  document.getElementById('userModalBg').style.display = 'none';
+}
+
+async function submitUserModal() {
+  const l = labels[currentLang];
+  const name = document.getElementById('modalName').value.trim();
+  const email = document.getElementById('modalEmail').value.trim();
+  const username = document.getElementById('modalUsername').value.trim();
+  const password = document.getElementById('modalPassword').value;
+  const role = document.getElementById('modalRole').value;
+  const active = document.getElementById('modalActive').value;
+
+  if (!name || !email || !username || (!editMode && !password)) {
+    document.getElementById('modalMsg').innerText = l.fillAll;
+    return;
+  }
+  document.getElementById('modalMsg').innerText = l.loading;
+
+  try {
+    let url = API_URL + '?resource=users';
+    let method = editMode ? 'update' : 'add';
+    let body = {
+      name, email, username, role, active
+    };
+    if (!editMode) body.password = password;
+    else if (password) body.password = password;
+
+    const res = await fetch(url + `&method=${method}`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const data = await res.json();
+    if (data.success) {
+      hideUserModal();
+      fetchUsers();
+    } else {
+      document.getElementById('modalMsg').innerText = data.error || l.error;
+    }
+  } catch (err) {
+    document.getElementById('modalMsg').innerText = l.connectionFail;
+  }
+}
+
+// --- تغيير الدور من الجدول مباشرة ---
+async function changeUserRole(username, newRole) {
+  const l = labels[currentLang];
+  try {
+    const res = await fetch(`${API_URL}?resource=users&method=update`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, role: newRole })
+    });
+    const data = await res.json();
+    if (data.success) {
+      fetchUsers();
+    } else {
+      alert(data.error || l.error);
+    }
+  } catch (error) {
+    alert(l.connectionFail);
+  }
+}
+
+// --- حذف مستخدم ---
+// --- حذف مستخدم من جوجل شيت ---
+async function deleteUser(username) {
+  const l = labels[currentLang];
+  if (!confirm(l.confirmDelete)) return;
+  try {
+    const res = await fetch(`${API_URL}?resource=users&method=delete`, {
+      method: 'POST',
+      body: JSON.stringify({ username }),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const data = await res.json();
+    if (data.success) {
+      fetchUsers(); // إعادة تحميل الجدول بعد الحذف
+    } else {
+      alert(data.error || l.error);
+    }
+  } catch (err) {
+    alert(l.connectionFail);
+  }
+}
+
+// --- تفعيل/إيقاف مستخدم ---
+async function toggleUserActive(username, newActive) {
+  const l = labels[currentLang];
+  try {
+    const res = await fetch(`${API_URL}?resource=users&method=update`, {
+      method: 'POST',
+      body: JSON.stringify({ username, active: newActive }),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const data = await res.json();
+    if (data.success) {
+      fetchUsers();
+    } else {
+      alert(data.error || l.error);
+    }
+  } catch (err) {
+    alert(l.connectionFail);
+  }
+}
+
+// تحميل البيانات عند فتح الصفحة
+fetchUsers();
+setLabels();
+</script>
+</body>
+</html>

@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>آلة حاسبة و Walky-Talky</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .sidebar {
+            width: 200px;
+            background-color: #007bff;
+            color: #fff;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: opacity 0.5s;
+        }
+        .sidebar.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .sidebar h1 {
+            font-size: 24px;
+            margin-top: 0;
+        }
+        .sidebar button {
+            background-color: #fff;
+            color: #007bff;
+            border: none;
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .sidebar button:hover {
+            background-color: #e9ecef;
+        }
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .button-container {
+            margin-bottom: 20px;
+        }
+        .button-container button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            background-color: #007bff;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .calculator, .walky-talky {
+            display: none;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            margin: auto;
+        }
+        .calculator-screen {
+            width: 100%;
+            padding: 10px;
+            font-size: 18px;
+            text-align: right;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+        }
+        .calculator-keys button {
+            width: 23%;
+            padding: 10px;
+            margin: 2px;
+            border: 1px solid #ccc;
+            background-color: #f7f7f7;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .calculator-keys .operator {
+            background-color: #007bff;
+            color: #fff;
+        }
+        .calculator-keys .equal-sign {
+            background-color: #28a745;
+            color: #fff;
+        }
+        .calculator-keys .clear {
+            background-color: #dc3545;
+            color: #fff;
+        }
+        .calculator-keys .percent {
+            background-color: #ffc107;
+            color: #fff;
+        }
+        .calculator-keys .exit {
+            background-color: #dc3545;
+            color: #fff;
+        }
+        .walky-talky .search-bar {
+            margin-bottom: 10px;
+        }
+        .walky-talky .search-bar input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .walky-talky .chat-box {
+            height: 200px;
+            border: 1px solid #ccc;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+        .chat-message {
+            padding: 5px;
+            border-bottom: 1px solid #ccc;
+        }
+        .chat-message.user {
+            text-align: right;
+            background-color: #e9ecef;
+        }
+        .chat-message img {
+            max-width: 200px;
+            border-radius: 5px;
+        }
+        .chat-input {
+            display: flex;
+            align-items: center;
+        }
+        .chat-input textarea {
+            width: calc(100% - 110px);
+            padding: 10px;
+            margin-right: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .chat-input button {
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .chat-input button:hover {
+            background-color: #0056b3;
+        }
+        .media-upload {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .media-upload input[type="file"] {
+            display: none;
+        }
+        .media-upload button {
+            margin-left: 10px;
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .audio-controls {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        .audio-controls button {
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .audio-controls input[type="range"] {
+            width: 200px;
+        }
+        .audio-controls button.muted {
+            background-color: #dc3545;
+        }
+        .push-to-talk {
+            background-color: #28a745;
+        }
+        .push-to-talk.active {
+            background-color: #ffcc00;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <h1>الجانب</h1>
+        <button onclick="showCalculator()">آلة حاسبة</button>
+        <button onclick="showWalkyTalky()">Walky-Talky</button>
+    </div>
+    <div class="main-content">
+        <!-- Calculator Section -->
+        <div class="calculator" id="calculator">
+            <input type="text" id="calc-screen" class="calculator-screen" disabled />
+            <div class="calculator-keys">
+                <button class="clear">C</button>
+                <button class="operator">/</button>
+                <button class="operator">*</button>
+                <button class="operator">-</button>
+                <button>7</button>
+                <button>8</button>
+                <button>9</button>
+                <button class="operator">+</button>
+                <button>4</button>
+                <button>5</button>
+                <button>6</button>
+                <button class="percent">%</button>
+                <button>1</button>
+                <button>2</button>
+                <button>3</button>
+                <button class="equal-sign">=</button>
+                <button>0</button>
+                <button>.</button>
+                <button class="exit">إغلاق</button>
+            </div>
+        </div>
+
+        <!-- Walky-Talky Section -->
+        <div class="walky-talky" id="walkyTalky">
+            <h2>Walky-Talky</h2>
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="بحث في الدردشات..."/>
+            </div>
+            <div class="chat-box" id="chatBox"></div>
+            <div class="chat-input">
+                <textarea id="messageInput" rows="3" placeholder="أكتب رسالتك هنا..."></textarea>
+                <button onclick="sendMessage()">إرسال</button>
+            </div>
+            <div class="media-upload">
+                <input type="file" id="fileUpload" accept="image/*,video/*,audio/*" onchange="uploadFile()">
+                <button onclick="document.getElementById('fileUpload').click()">تحميل ملف</button>
+                <button onclick="openCamera()">التقط صورة</button>
+            </div>
+
+            <!-- Audio Controls Section -->
+            <div class="audio-controls">
+                <button id="muteMicBtn" onclick="toggleMic()">كتم المايكروفون</button>
+                <button id="muteReceiverBtn" onclick="toggleReceiver()">كتم الصوت المستقبل</button>
+                <input type="range" id="volumeControl" min="0" max="100" value="50" onchange="adjustVolume(this.value)">
+                <button id="pushToTalk" class="push-to-talk" onmousedown="startTalking()" onmouseup="stopTalking()">اضغط وتحدث</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript للآلة الحاسبة
+        const calcScreen = document.getElementById('calc-screen');
+        let calcInput = '';
+        document.querySelectorAll('.calculator-keys button').forEach(button => {
+            button.addEventListener('click', () => {
+                if (button.classList.contains('clear')) {
+                    calcInput = '';
+                    calcScreen.value = '';
+                } else if (button.classList.contains('equal-sign')) {
+                    try {
+                        calcScreen.value = eval(calcInput);
+                        calcInput = calcScreen.value;
+                    } catch (error) {
+                        calcScreen.value = 'Error';
+                    }
+                } else {
+                    calcInput += button.textContent;
+                    calcScreen.value = calcInput;
+                }
+            });
+        });
+
+        // JavaScript للـ Walky-Talky
+        function showCalculator() {
+            document.getElementById('calculator').style.display = 'block';
+            document.getElementById('walkyTalky').style.display = 'none';
+        }
+
+        function showWalkyTalky() {
+            document.getElementById('walkyTalky').style.display = 'block';
+            document.getElementById('calculator').style.display = 'none';
+        }
+
+        // إرسال الرسائل النصية
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const chatBox = document.getElementById('chatBox');
+            const message = messageInput.value;
+            if (message.trim() !== '') {
+                const newMessage = document.createElement('div');
+                newMessage.classList.add('chat-message', 'user');
+                newMessage.textContent = message;
+                chatBox.appendChild(newMessage);
+                messageInput.value = '';
+                chatBox.scrollTop = chatBox.scrollHeight; // Scroll to bottom
+            }
+        }
+
+        // التحكم في كتم المايكروفون
+        function toggleMic() {
+            const muteMicBtn = document.getElementById('muteMicBtn');
+            muteMicBtn.classList.toggle('muted');
+            muteMicBtn.textContent = muteMicBtn.classList.contains('muted') ? 'إلغاء كتم المايكروفون' : 'كتم المايكروفون';
+        }
+
+        // التحكم في كتم الصوت المستقبل
+        function toggleReceiver() {
+            const muteReceiverBtn = document.getElementById('muteReceiverBtn');
+            muteReceiverBtn.classList.toggle('muted');
+            muteReceiverBtn.textContent = muteReceiverBtn.classList.contains('muted') ? 'إلغاء كتم الصوت المستقبل' : 'كتم الصوت المستقبل';
+        }
+
+        // التحكم في مستوى الصوت
+        function adjustVolume(value) {
+            console.log('مستوى الصوت:', value);
+        }
+
+        // خاصية اضغط وتحدث
+        function startTalking() {
+            const pushToTalk = document.getElementById('pushToTalk');
+            pushToTalk.classList.add('active');
+            console.log('بدء التحدث...');
+        }
+
+        function stopTalking() {
+            const pushToTalk = document.getElementById('pushToTalk');
+            pushToTalk.classList.remove('active');
+            console.log('التوقف عن التحدث.');
+        }
+
+        // تحميل الملفات
+        function uploadFile() {
+            const fileInput = document.getElementById('fileUpload');
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const chatBox = document.getElementById('chatBox');
+                const newMessage = document.createElement('div');
+                newMessage.classList.add('chat-message', 'user');
+                if (file.type.startsWith('image/')) {
+                    const img = document.createElement('img');
+                    img.src = URL.createObjectURL(file);
+                    newMessage.appendChild(img);
+                } else {
+                    newMessage.textContent = `تم تحميل الملف: ${file.name}`;
+                }
+                chatBox.appendChild(newMessage);
+                chatBox.scrollTop = chatBox.scrollHeight; // Scroll to bottom
+            }
+        }
+
+        // فتح الكاميرا
+        function openCamera() {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    const video = document.createElement('video');
+                    video.srcObject = stream;
+                    video.play();
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    document.body.appendChild(video);
+                    document.body.appendChild(canvas);
+                    video.addEventListener('click', () => {
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        context.drawImage(video, 0, 0);
+                        const img = new Image();
+                        img.src = canvas.toDataURL();
+                        document.getElementById('chatBox').appendChild(img);
+                        document.body.removeChild(video);
+                        document.body.removeChild(canvas);
+                    });
+                })
+                .catch(err => console.error('حدث خطأ:', err));
+        }
+    </script>
+</body>
+</html>

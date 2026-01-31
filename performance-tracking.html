@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تتبع الأداء</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>تتبع الأداء</h1>
+        </header>
+
+        <main>
+            <div class="performance-management">
+                <h2>تسجيل أداء الموظفين</h2>
+                <form id="performanceForm" action="add_performance.php" method="post">
+                    <label for="employeeId">رقم الموظف:</label>
+                    <input type="text" id="employeeId" name="employee_id" required>
+
+                    <label for="performanceDate">تاريخ الأداء:</label>
+                    <input type="date" id="performanceDate" name="performance_date" required>
+
+                    <label for="performanceScore">تقييم الأداء (من 100):</label>
+                    <input type="number" id="performanceScore" name="performance_score" max="100" required>
+
+                    <label for="comments">ملاحظات:</label>
+                    <textarea id="comments" name="comments"></textarea>
+
+                    <button type="submit">حفظ</button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <title>لوحة التطبيقات</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+      transition: all 0.3s ease;
+    }
+    body[dir="rtl"] {
+      direction: rtl;
+    }
+    body[dir="ltr"] {
+      direction: ltr;
+    }
+    h1 {
+      text-align: center;
+      color: #007bff;
+    }
+    #lang-switch {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+    }
+    #lang-switch button {
+      padding: 6px 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    #login, #logout-btn {
+      text-align: center;
+      margin-top: 30px;
+    }
+    #login input {
+      padding: 12px;
+      margin: 8px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      width: 250px;
+    }
+    #login button, #logout-btn button {
+      padding: 10px 25px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      justify-content: center;
+      font-size: 16px;
+    }
+    #message {
+      text-align: center;
+      margin-top: 10px;
+      color: red;
+    }
+    #categories, #apps {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      margin-top: 30px;
+    }
+    .category {
+      background-color: #ffffff;
+      padding: 12px 25px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+    }
+    .category:hover {
+      background-color: #f1f1f1;
+    }
+    .app-card {
+      background-color: #fff;
+      padding: 15px 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+      width: 280px;
+      cursor: pointer;
+      transition: box-shadow 0.3s ease;
+    }
+    .app-card:hover {
+      box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+    }
+    .app-card.inactive {
+      opacity: 0.5;
+    }
+    a {
+      color: #007bff;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* ستايلات مودال خصائص التطبيق */
+    #app-settings-modal {
+      display: none; 
+      position: fixed; 
+      z-index: 9999; 
+      left: 0; top: 0; width: 100%; height: 100%;
+      overflow: auto; 
+      background-color: rgba(0,0,0,0.5);
+    }
+    #app-settings-modal .modal-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 10px;
+      width: 400px;
+      direction: rtl; /* حسب اللغة يمكن تغييره */
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      position: relative;
+    }
+    #app-settings-modal label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    #app-settings-modal input[type="text"], 
+    #app-settings-modal textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    #app-settings-modal .users-list {
+      max-height: 100px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      padding: 6px;
+      border-radius: 6px;
+      margin-top: 5px;
+      background-color: #fafafa;
+    }
+    #app-settings-modal .users-list div {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 2px 0;
+    }
+    #app-settings-modal button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      user-select: none;
+      font-size: 16px;
+    }
+    #app-settings-modal .close-btn {
+      background-color: #dc3545;
+      float: right;
+      margin-top: 0;
+      font-size: 20px;
+      line-height: 1;
+      padding: 5px 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="lang-switch">
+    <button onclick="toggleLang()" id="lang-btn">🌐 عربي</button>
+  </div>
+
+  <h1 id="title">لوحة التطبيقات</h1>
+
+  <!-- تسجيل الدخول -->
+  <div id="login">
+    <input type="email" id="email" placeholder="البريد الإلكتروني" />
+    <br />
+    <input type="password" id="password" placeholder="كلمة المرور" />
+    <br />
+    <button id="login-btn" onclick="login()">تسجيل الدخول</button>
+  </div>
+
+  <!-- زر تسجيل الخروج -->
+  <div id="logout-btn" style="display:none;">
+    <button onclick="logout()">🚪 تسجيل الخروج</button>
+  </div>
+
+  <div id="message"></div>
+  <div id="categories" style="display:none;"></div>
+  <div id="apps" style="display:none;"></div>
+
+  <!-- مودال خصائص التطبيق -->
+  <div id="app-settings-modal">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeAppSettings()">×</button>
+      <h2 id="modal-title">خصائص التطبيق</h2>
+      <form id="app-settings-form" onsubmit="saveAppSettings(event)">
+        <label for="appPageName">اسم صفحة التطبيق (html):</label>
+        <input type="text" id="appPageName" name="appPageName" placeholder="مثلاً: app1.html" required />
+
+        <label>المستخدمون المصرح لهم:</label>
+        <div id="authorizedUsers" class="users-list"></div>
+
+        <label for="newUserEmail">إضافة مستخدم جديد (بريد إلكتروني):</label>
+        <input type="text" id="newUserEmail" placeholder="user@example.com" />
+        <button type="button" onclick="addAuthorizedUser()">إضافة مستخدم</button>
+
+        <button type="submit">حفظ التعديلات</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycby3oJJmAI1wf62VZ-qq0gxUYW9q9N87jYQvKxIzAysPBVHCW5sK5u4VLlwXFaozag3J/exec";
+
+    let allApps = [];
+    let categories = [];
+
+    const translations = {
+      ar: {
+        title: "لوحة التطبيقات",
+        email: "البريد الإلكتروني",
+        password: "كلمة المرور",
+        login: "تسجيل الدخول",
+        logout: "🚪 تسجيل الخروج",
+        all: "📂 الكل",
+        loadingError: "حدث خطأ في الاتصال بالخادم",
+        loginSuccess: "تم تسجيل الدخول بنجاح",
+        fillFields: "يرجى إدخال البريد الإلكتروني وكلمة المرور",
+        noApps: "لا توجد تطبيقات في هذه الفئة.",
+        link: "الرابط",
+        status: "الحالة",
+        active: "نشط",
+        inactive: "غير نشط",
+        goal: "الهدف",
+        langBtn: "🌐 عربي",
+        invalidEmailAlert: "يرجى إدخال بريد إلكتروني صالح",
+        userExistsAlert: "المستخدم موجود بالفعل",
+        pageNameRequiredAlert: "يجب إدخال اسم صفحة التطبيق",
+        settingsSavedAlert: "تم حفظ الإعدادات"
+      },
+      en: {
+        title: "App Dashboard",
+        email: "Email",
+        password: "Password",
+        login: "Login",
+        logout: "🚪 Logout",
+        all: "📂 All",
+        loadingError: "Error connecting to the server",
+        loginSuccess: "Logged in successfully",
+        fillFields: "Please enter email and password",
+        noApps: "No apps found in this category.",
+        link: "Link",
+        status: "Status",
+        active: "Active",
+        inactive: "Inactive",
+        goal: "Goal",
+        langBtn: "🌐 English",
+        invalidEmailAlert: "Please enter a valid email",
+        userExistsAlert: "User already exists",
+        pageNameRequiredAlert: "App page name is required",
+        settingsSavedAlert: "Settings saved"
+      }
+    };
+
+    let lang = localStorage.getItem("lang") || "ar";
+
+    function applyLang() {
+      document.documentElement.lang = lang;
+      document.body.dir = lang === "ar" ? "rtl" : "ltr";
+
+      const t = translations[lang];
+      document.getElementById("title").textContent = t.title;
+      document.getElementById("email").placeholder = t.email;
+      document.getElementById("password").placeholder = t.password;
+      document.getElementById("login-btn").textContent = t.login;
+      document.getElementById("logout-btn").querySelector("button").textContent = t.logout;
+      document.getElementById("lang-btn").textContent = t.langBtn;
+      document.getElementById("modal-title").textContent = lang === "ar" ? "خصائص التطبيق" : "App Settings";
+      document.querySelector("label[for='appPageName']").textContent = lang === "ar" ? "اسم صفحة التطبيق (html):" : "App Page Name (html):";
+      document.querySelector("#app-settings-modal label:nth-of-type(2)").textContent = lang === "ar" ? "المستخدمون المصرح لهم:" : "Authorized Users:";
+      document.querySelector("label[for='newUserEmail']").textContent = lang === "ar" ? "إضافة مستخدم جديد (بريد إلكتروني):" : "Add New User (email):";
+      document.querySelector("#app-settings-form button[type='submit']").textContent = lang === "ar" ? "حفظ التعديلات" : "Save Changes";
+      document.querySelector("#app-settings-form button[type='button']").textContent = lang === "ar" ? "إضافة مستخدم" : "Add User";
+    }
+
+    function toggleLang() {
+      lang = lang === "ar" ? "en" : "ar";
+      localStorage.setItem("lang", lang);
+      applyLang();
+      if (localStorage.getItem("userEmail")) {
+        fetchData(localStorage.getItem("userEmail"));
+      } else {
+        // لو لم يكن مسجل دخول، فقط أعِد عرض الفئات فارغة
+        document.getElementById("categories").style.display = "none";
+        document.getElementById("apps").style.display = "none";
+      }
+    }
+
+    function showMessage(msg, color = "red") {
+      const msgDiv = document.getElementById("message");
+      msgDiv.style.color = color;
+      msgDiv.textContent = msg;
+      setTimeout(() => msgDiv.textContent = "", 4000);
+    }
+
+    function login() {
+      const email = document.getElementById("email").value.trim().toLowerCase();
+      const password = document.getElementById("password").value.trim();
+
+      if (!email || !password) {
+        showMessage(translations[lang].fillFields);
+        return;
+      }
+
+      fetch(`${API_URL}?method=login&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            localStorage.setItem("userEmail", email);
+            document.getElementById("login").style.display = "none";
+            document.getElementById("logout-btn").style.display = "block";
+            showMessage(translations[lang].loginSuccess, "green");
+            fetchData(email);
+          } else {
+            showMessage(data.message || translations[lang].loadingError);
+          }
+        })
+        .catch(() => {
+          showMessage(translations[lang].loadingError);
+        });
+    }
+
+    function logout() {
+      localStorage.removeItem("userEmail");
+      document.getElementById("login").style.display = "block";
+      document.getElementById("logout-btn").style.display = "none";
+      document.getElementById("categories").style.display = "none";
+      document.getElementById("apps").style.display = "none";
+      allApps = [];
+      categories = [];
+    }
+
+    function fetchData(userEmail) {
+      fetch(`${API_URL}?method=getApps&email=${encodeURIComponent(userEmail)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            allApps = data.apps || [];
+            categories = getUniqueCategories(allApps);
+            renderCategories(categories);
+            renderApps(allApps);
+            document.getElementById("categories").style.display = "flex";
+            document.getElementById("apps").style.display = "flex";
+          } else {
+            showMessage(data.message || translations[lang].loadingError);
+          }
+        })
+        .catch(() => {
+          showMessage(translations[lang].loadingError);
+        });
+    }
+
+    function getUniqueCategories(apps) {
+      const cats = new Set();
+      apps.forEach(app => {
+        if (app.Category) cats.add(app.Category);
+      });
+      return Array.from(cats);
+    }
+
+    // عرض الفئات مع زر الكل
+    function renderCategories(cats) {
+      const container = document.getElementById("categories");
+      container.innerHTML = "";
+
+      // زر الكل
+      const allBtn = document.createElement("div");
+      allBtn.className = "category";
+      allBtn.textContent = translations[lang].all;
+      allBtn.onclick = () => renderApps(allApps);
+      container.appendChild(allBtn);
+
+      cats.forEach(cat => {
+        const div = document.createElement("div");
+        div.className = "category";
+        div.textContent = cat;
+        div.onclick = () => {
+          const filtered = allApps.filter(app => app.Category === cat);
+          renderApps(filtered);
+        };
+        container.appendChild(div);
+      });
+    }
+
+    // عرض التطبيقات
+    function renderApps(apps) {
+      const container = document.getElementById("apps");
+      container.innerHTML = "";
+
+      if (!apps.length) {
+        container.textContent = translations[lang].noApps;
+        return;
+      }
+
+      apps.forEach(app => {
+        const card = document.createElement("div");
+        card.className = "app-card";
+        if (!app.Active) card.classList.add("inactive");
+
+        const name = lang === "ar" ? app.Name_AR : app.Name_EN;
+        const description = lang === "ar" ? app.Description_AR : app.Description_EN;
+        const goal = lang === "ar" ? app.Goal_AR : app.Goal_EN;
+
+        card.innerHTML = `
+          <h3>${name}</h3>
+          <p>${description}</p>
+          <p><strong>${translations[lang].goal}:</strong> ${goal}</p>
+          <p><strong>${translations[lang].status}:</strong> ${app.Active ? translations[lang].active : translations[lang].inactive}</p>
+          <p><a href="${app.App_url}" target="_blank" rel="noopener">${translations[lang].link}</a></p>
+        `;
+
+        // عند الضغط على الكارد، فتح خصائص التطبيق
+        card.onclick = () => onAppClick(app);
+
+        container.appendChild(card);
+      });
+    }
+
+    // مودال خصائص التطبيق
+    let currentEditingApp = null; // لتخزين التطبيق الذي نعدل عليه
+
+    function onAppClick(app) {
+      currentEditingApp = app;
+
+      // تعبئة الحقول
+      document.getElementById("appPageName").value = app.PageName || "";
+      renderAuthorizedUsers(app.AuthorizedUsers || []);
+
+      // إظهار المودال
+      document.getElementById("app-settings-modal").style.display = "block";
+    }
+
+    function closeAppSettings() {
+      document.getElementById("app-settings-modal").style.display = "none";
+      currentEditingApp = null;
+    }
+
+    function renderAuthorizedUsers(users) {
+      const container = document.getElementById("authorizedUsers");
+      container.innerHTML = "";
+      users.forEach(email => {
+        const div = document.createElement("div");
+        div.textContent = email;
+        const removeBtn = document.createElement("button");
+        removeBtn.textContent = "×";
+        removeBtn.style.marginLeft = "8px";
+        removeBtn.onclick = () => {
+          // إزالة المستخدم من القائمة
+          users.splice(users.indexOf(email), 1);
+          renderAuthorizedUsers(users);
+        };
+        div.appendChild(removeBtn);
+        container.appendChild(div);
+      });
+    }
+
+    function addAuthorizedUser() {
+      const emailInput = document.getElementById("newUserEmail");
+      const email = emailInput.value.trim().toLowerCase();
+      if (!email || !validateEmail(email)) {
+        alert(translations[lang].invalidEmailAlert);
+        return;
+      }
+      if (!currentEditingApp.AuthorizedUsers) currentEditingApp.AuthorizedUsers = [];
+      if (currentEditingApp.AuthorizedUsers.includes(email)) {
+        alert(translations[lang].userExistsAlert);
+        return;
+      }
+      currentEditingApp.AuthorizedUsers.push(email);
+      renderAuthorizedUsers(currentEditingApp.AuthorizedUsers);
+      emailInput.value = "";
+    }
+
+    function saveAppSettings(event) {
+      event.preventDefault();
+      const pageName = document.getElementById("appPageName").value.trim();
+      if (!pageName) {
+        alert(translations[lang].pageNameRequiredAlert);
+        return;
+      }
+
+      // حفظ التعديلات في التطبيق الحالي
+      currentEditingApp.PageName = pageName;
+
+      // هنا: يجب حفظ هذه البيانات في قاعدة البيانات أو Google Sheets عبر API
+      // مثال: send updated app data to backend
+      // يمكن تنفيذ ذلك عبر طلب fetch مع بيانات currentEditingApp
+
+      alert(translations[lang].settingsSavedAlert);
+
+      closeAppSettings();
+      renderApps(allApps);
+    }
+
+    // دالة تحقق من صحة البريد الإلكتروني
+    function validateEmail(email) {
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return re.test(email);
+    }
+
+    // عند التحميل، تطبيق اللغة والتأكد من تسجيل الدخول
+    window.onload = () => {
+      applyLang();
+
+      const savedEmail = localStorage.getItem("userEmail");
+      if (savedEmail) {
+        document.getElementById("login").style.display = "none";
+        document.getElementById("logout-btn").style.display = "block";
+        fetchData(savedEmail);
+      }
+    };
+  </script>
+</body>
+</html>
